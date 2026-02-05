@@ -1,0 +1,274 @@
+'use client'
+
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import JobListener from '@/components/JobListener'
+import {
+    Sparkles,
+    ArrowRight,
+    Wand2,
+    Search,
+    Heart,
+    Rocket,
+    Ghost,
+    Compass,
+    Languages,
+    Target,
+    BookOpen,
+    BarChart
+} from 'lucide-react'
+
+const GENRES = [
+    { id: 'fantasy', name: 'Fantasy', icon: Wand2, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/50' },
+    { id: 'mystery', name: 'Mystery', icon: Search, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/50' },
+    { id: 'romance', name: 'Romance', icon: Heart, color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/50' },
+    { id: 'science_fiction', name: 'Sci-Fi', icon: Rocket, color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/50' },
+    { id: 'horror', name: 'Horror', icon: Ghost, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/50' },
+    { id: 'adventure', name: 'Adventure', icon: Compass, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/50' },
+]
+
+const LANGUAGES = [
+    { value: 'English', label: 'English' },
+    { value: 'Spanish', label: 'Español' },
+    { value: 'French', label: 'Français' },
+    { value: 'German', label: 'Deutsch' },
+    { value: 'Italian', label: 'Italiano' },
+    { value: 'Portuguese', label: 'Português' },
+    { value: 'Chinese', label: 'Chinese' },
+    { value: 'Japanese', label: 'Japanese' },
+]
+
+const DIFFICULTY_LEVELS = [
+    "Beginner",
+    "Elementary",
+    "Pre-Intermediate",
+    "Intermediate",
+    "Upper-Intermediate",
+    "Advanced",
+    "Proficient",
+    "Fluent",
+    "Native",
+    "Expert"
+]
+
+export default function CreateStory() {
+    const [loading, setLoading] = useState(false)
+    const [jobId, setJobId] = useState<string | null>(null)
+    const [selectedGenre, setSelectedGenre] = useState('fantasy')
+    const [difficulty, setDifficulty] = useState(5)
+
+    const supabase = createClient()
+    const router = useRouter()
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        setLoading(true)
+
+        const formData = new FormData(e.currentTarget)
+        const language = formData.get('language') as string
+        const goal = formData.get('goal') as string
+        const lesson = formData.get('lesson') as string
+
+        try {
+            // Get current user
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) {
+                router.push('/login')
+                return
+            }
+
+            // Create job
+            const { data, error } = await supabase
+                .from('jobs')
+                .insert({
+                    user_id: user.id,
+                    type: 'generate_start',
+                    params: {
+                        genre: selectedGenre,
+                        language,
+                        goal,
+                        lesson,
+                        level: difficulty,
+                        level_label: DIFFICULTY_LEVELS[difficulty - 1]
+                    },
+                    status: 'pending'
+                })
+                .select() // Select to return the ID
+                .single()
+
+            if (error) throw error
+
+            if (data) {
+                setJobId(data.id)
+            }
+        } catch (error) {
+            console.error('Error creating story job:', error)
+            alert('Failed to start story generation')
+            setLoading(false)
+        }
+    }
+
+    if (jobId) {
+        return (
+            <div className="min-h-screen flex items-center justify-center p-4">
+                <JobListener jobId={jobId} />
+            </div>
+        )
+    }
+
+    return (
+        <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 flex justify-center">
+            <div className="max-w-4xl w-full space-y-8 glass-dark p-8 md:p-12 rounded-3xl border border-white/5 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="text-center space-y-4">
+                    <div className="inline-flex items-center justify-center p-3 bg-purple-500/10 rounded-2xl mb-2">
+                        <Sparkles className="w-8 h-8 text-purple-400" />
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">Create New Story</h1>
+                    <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+                        Define the parameters for your next adventure. Choose your genre, set the difficulty, and let AI craft a unique tale.
+                    </p>
+                </div>
+
+                <form className="mt-12 space-y-12" onSubmit={handleSubmit}>
+
+                    {/* Genre Selection */}
+                    <div className="space-y-4">
+                        <label className="block text-lg font-semibold text-white">Choose Your Genre</label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {GENRES.map((genre) => (
+                                <div key={genre.id} className="relative">
+                                    <input
+                                        type="radio"
+                                        name="genre"
+                                        id={genre.id}
+                                        value={genre.id}
+                                        checked={selectedGenre === genre.id}
+                                        onChange={(e) => setSelectedGenre(e.target.value)}
+                                        className="peer sr-only"
+                                    />
+                                    <label
+                                        htmlFor={genre.id}
+                                        className={`flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all cursor-pointer hover:bg-white/5
+                                            ${selectedGenre === genre.id
+                                                ? `${genre.border} ${genre.bg} bg-opacity-20`
+                                                : 'border-white/5 bg-black/20 text-gray-400 hover:border-white/20'
+                                            }
+                                        `}
+                                    >
+                                        <genre.icon className={`w-10 h-10 mb-3 ${selectedGenre === genre.id ? genre.color : 'text-gray-500'}`} />
+                                        <span className={`font-medium ${selectedGenre === genre.id ? 'text-white' : 'text-gray-400'}`}>
+                                            {genre.name}
+                                        </span>
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Language */}
+                        <div className="space-y-4">
+                            <label htmlFor="language" className="flex items-center gap-2 text-lg font-semibold text-white">
+                                <Languages className="w-5 h-5 text-gray-400" />
+                                Language
+                            </label>
+                            <div className="relative">
+                                <select
+                                    id="language"
+                                    name="language"
+                                    className="block w-full px-4 py-4 rounded-xl border border-white/10 bg-black/40 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 appearance-none transition-all hover:bg-black/60"
+                                    defaultValue="English"
+                                >
+                                    {LANGUAGES.map((lang) => (
+                                        <option key={lang.value} value={lang.value}>{lang.label}</option>
+                                    ))}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
+                                    <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Character Goal */}
+                        <div className="space-y-4">
+                            <label htmlFor="goal" className="flex items-center gap-2 text-lg font-semibold text-white">
+                                <Target className="w-5 h-5 text-gray-400" />
+                                Story Goal <span className="text-sm font-normal text-gray-500">(Optional)</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="goal"
+                                id="goal"
+                                className="block w-full px-4 py-4 rounded-xl border border-white/10 bg-black/40 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all hover:bg-black/60"
+                                placeholder="e.g. Find the lost treasure"
+                            />
+                        </div>
+
+                        {/* Lesson */}
+                        <div className="space-y-4">
+                            <label htmlFor="lesson" className="flex items-center gap-2 text-lg font-semibold text-white">
+                                <BookOpen className="w-5 h-5 text-gray-400" />
+                                Lesson / Theme <span className="text-sm font-normal text-gray-500">(Optional)</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="lesson"
+                                id="lesson"
+                                className="block w-full px-4 py-4 rounded-xl border border-white/10 bg-black/40 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all hover:bg-black/60"
+                                placeholder="e.g. Friendship, Courage"
+                            />
+                        </div>
+
+                        {/* Difficulty Level */}
+                        <div className="space-y-6">
+                            <label htmlFor="level" className="flex items-center gap-2 text-lg font-semibold text-white">
+                                <BarChart className="w-5 h-5 text-gray-400" />
+                                Difficulty Level
+                            </label>
+                            <div className="px-2">
+                                <input
+                                    type="range"
+                                    id="level"
+                                    min="1"
+                                    max="10"
+                                    value={difficulty}
+                                    onChange={(e) => setDifficulty(parseInt(e.target.value))}
+                                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                                />
+                                <div className="mt-4 flex justify-between items-center">
+                                    <div className="text-sm text-gray-500 font-mono">Level {difficulty}</div>
+                                    <div className="px-4 py-2 bg-purple-500/20 text-purple-300 rounded-lg text-sm font-bold border border-purple-500/30">
+                                        {DIFFICULTY_LEVELS[difficulty - 1]}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="pt-8">
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="group relative w-full flex justify-center items-center py-5 px-4 text-lg font-bold rounded-xl text-black bg-white hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all disabled:opacity-50 disabled:hover:scale-100"
+                        >
+                            {loading ? (
+                                <span className="flex items-center gap-2">
+                                    <span className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                    Starting Magic...
+                                </span>
+                            ) : (
+                                <>
+                                    Generate Story
+                                    <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )
+}

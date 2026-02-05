@@ -1,0 +1,241 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+}
+
+@layer components {
+  .starfield-container {
+    @apply absolute inset-0 overflow-hidden pointer-events-none z-0;
+    background: radial-gradient(ellipse at bottom, #1B2735 0%, #0d0c1d 100%);
+  }
+
+  .stars-layer {
+    @apply absolute top-0 left-0 w-[2px] h-[2px] bg-transparent rounded-full;
+    /* Denser starfield: 150+ coordinates */
+    box-shadow:
+      /* Section 1: Top Area */
+      120px 40px #FFF, 500px 80px #FFF, 950px 30px #ffffffcc, 1400px 120px #FFF, 1850px 60px #ffffff99,
+      250px 200px #FFF, 600px 250px #ffffffcc, 1100px 180px #FFF, 1550px 240px #ffffffaa, 1950px 300px #FFF,
+      50px 350px #ffffff99, 450px 400px #FFF, 850px 380px #ffffffcc, 1250px 420px #FFF, 1650px 360px #ffffffdd,
+      /* Section 2: Mid-Upper Area */
+      200px 600px #FFF, 700px 550px #ffffffbb, 1050px 620px #FFF, 1450px 580px #ffffffee, 1900px 650px #FFF,
+      350px 750px #ffffffcc, 800px 800px #FFF, 1300px 720px #ffffff99, 1750px 780px #FFF, 100px 850px #ffffffaa,
+      550px 920px #FFF, 950px 980px #ffffffdd, 1350px 940px #FFF, 1800px 900px #ffffffbb, 400px 1050px #FFF,
+      /* Section 3: Mid-Lower Area */
+      150px 1200px #ffffffcc, 650px 1150px #FFF, 1150px 1250px #ffffff99, 1600px 1100px #FFF, 50px 1350px #ffffffdd,
+      500px 1400px #FFF, 900px 1320px #ffffffaa, 1400px 1380px #FFF, 1950px 1450px #ffffffcc, 300px 1550px #FFF,
+      750px 1600px #ffffffbb, 1200px 1520px #FFF, 1700px 1650px #ffffff99, 250px 1750px #FFF, 850px 1800px #ffffffdd,
+      /* Section 4: Bottom Area & Fillers */
+      1300px 1720px #FFF, 1850px 1850px #ffffffaa, 100px 1900px #FFF, 600px 1950px #ffffffcc, 1100px 1880px #FFF,
+      1500px 1920px #ffffff99, 1920px 50px #FFF, 40px 1000px #ffffffdd, 1000px 10px #FFF, 1500px 1500px #ffffffbb,
+      /* Scatter Fillers (to remove grid-like feel) */
+      324px 142px #FFF, 876px 543px #FFF, 123px 987px #ffffffaa, 1654px 321px #FFF, 567px 1234px #ffffffcc,
+      1890px 876px #FFF, 234px 1654px #ffffff99, 987px 234px #FFF, 1432px 765px #ffffffdd, 654px 1890px #FFF,
+      1234px 432px #ffffffbb, 1765px 1098px #FFF, 432px 654px #ffffffcc, 1098px 1765px #FFF, 1543px 123px #ffffffaa,
+      /* Extra Dense Pocket (Milky Way feel) */
+      820px 840px #ffffff88, 860px 880px #ffffff88, 900px 820px #ffffff88, 840px 900px #ffffff88, 920px 860px #ffffff88,
+      820px 840px #ffffff88, 860px 880px #ffffff88, 900px 765px #ffffff88, 654px 1765px #ffffff88, 690px 394px #ffffff88;
+
+    animation: starMove 120s linear infinite;
+  }
+
+  @keyframes starMove {
+    from {
+      transform: translateY(0);
+    }
+
+    to {
+      transform: translateY(-2000px);
+    }
+  }
+}
+
+@layer base {
+  :root {
+    /* Light Mode */
+    --background: 0 0% 99.2%;
+    /* #fdfdfd */
+    --foreground: 240 28% 14%;
+    /* #1a1a2e */
+    --card: 0 0% 100%;
+    /* #ffffff */
+    --card-foreground: 240 28% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 28% 14%;
+    --primary: 243 75% 58%;
+    /* #4e45e3 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 10% 96%;
+    --secondary-foreground: 240 28% 14%;
+    --muted: 240 10% 96%;
+    --muted-foreground: 240 10% 43.5%;
+    /* #64647a */
+    --accent: 48 100% 50%;
+    /* #ffcc00 */
+    --accent-foreground: 240 28% 14%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 10% 90%;
+    --input: 240 10% 90%;
+    --ring: 243 75% 58%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark Mode */
+    --background: 244 41% 8%;
+    /* #0d0c1d */
+    --foreground: 0 0% 88%;
+    /* #e0e0e0 */
+    --card: 240 28% 14%;
+    /* #1a1a2e */
+    --card-foreground: 0 0% 88%;
+    --popover: 240 28% 14%;
+    --popover-foreground: 0 0% 88%;
+    --primary: 232 70% 67%;
+    /* #6d7de8 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 244 30% 15%;
+    --secondary-foreground: 0 0% 88%;
+    --muted: 244 30% 15%;
+    --muted-foreground: 240 9% 67%;
+    /* #a1a1b5 */
+    --accent: 48 100% 50%;
+    /* #ffd500 */
+    --accent-foreground: 240 28% 14%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 20% 20%;
+    --input: 240 20% 20%;
+    --ring: 232 70% 67%;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-lg;
+  }
+
+  .glass-dark {
+    @apply bg-black/30 backdrop-blur-md border border-white/10 shadow-lg;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#6d7de8] via-[#88A3D6] to-[#b9a7ff];
+  }
+
+  .text-gradient-spotlight {
+    @apply bg-clip-text text-transparent bg-gradient-to-b from-white to-[#6d7de8];
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Cinematic Button System */
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-xl font-bold transition-all duration-300 ease-out active:scale-95 disabled:opacity-50 disabled:pointer-events-none bg-[#6d7de8] text-white border border-transparent hover:scale-105;
+    box-shadow: 0 0 15px rgba(109, 125, 232, 0.4);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 25px rgba(109, 125, 232, 0.6);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-xl font-bold transition-all duration-300 ease-out active:scale-95 disabled:opacity-50 disabled:pointer-events-none bg-white/5 backdrop-blur-[10px] border border-white/10 text-white hover:bg-white/10 hover:scale-105 hover:border-white/20;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-xl font-bold transition-all duration-300 ease-out active:scale-95 disabled:opacity-50 disabled:pointer-events-none bg-transparent text-[#a1a1b5] hover:text-white hover:scale-105;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+body {
+  @apply bg-background text-foreground;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* --- QUILL CURSOR MANAGEMENT (SCOPED TO HOMEPAGE) --- */
+
+/* 1. Hide quill in Header/Footer/Dropdowns */
+/* We still want to hide the QUILL itself when hovering these areas globally if it is present */
+body:has(header:hover) .quill-cursor,
+body:has(footer:hover) .quill-cursor,
+body:has([role="listbox"]:hover) .quill-cursor,
+body:has(.dropdown-menu:hover) .quill-cursor {
+  opacity: 0 !important;
+}
+
+/* 2. Disable Default Pointer ONLY inside the custom zone (Home Page) */
+/* "I need the pointer none to work Only in the home page" */
+
+.custom-cursor-zone {
+  cursor: none !important;
+}
+
+.custom-cursor-zone a,
+.custom-cursor-zone button,
+.custom-cursor-zone [role="button"],
+.custom-cursor-zone input,
+.custom-cursor-zone select,
+.custom-cursor-zone textarea {
+  cursor: none !important;
+}
+
+/* Exception: Header and Footer are usually outside the main content wrapper, 
+   but just in case, ensure they revert to auto. */
+/* Exception: Header and Footer are usually outside the main content wrapper, 
+   but just in case, ensure they revert to auto. */
+header,
+footer {
+  cursor: auto !important;
+}
+
+header a,
+header button,
+footer a,
+footer button,
+footer a {
+  cursor: pointer !important;
+}
+
+[role="listbox"],
+[role="menu"],
+.dropdown-menu {
+  cursor: pointer !important;
+}

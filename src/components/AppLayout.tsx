@@ -7,11 +7,13 @@ import Sidebar from './Sidebar';
 import Footer from './Footer';
 import { LogOut, User as UserIcon, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
+import { useSidebar } from '@/context/SidebarContext';
 
 const PUBLIC_PATHS = ['/', '/login', '/signup', '/about', '/contact', '/terms', '/privacy', '/support'];
 
 export default function AppLayout({ children, user }: { children: React.ReactNode; user: User | null }) {
     const pathname = usePathname();
+    const { isCollapsed } = useSidebar();
     const isPublic = PUBLIC_PATHS.includes(pathname);
 
     // Show sidebar if authenticated AND not on a public page
@@ -29,7 +31,7 @@ export default function AppLayout({ children, user }: { children: React.ReactNod
 
             {showSidebar && <Sidebar user={user} />}
 
-            <main className={`flex-grow transition-all ${showSidebar ? 'md:pl-64 pt-6' : 'pt-16'}`}>
+            <main className={`flex-grow transition-all duration-300 ${showSidebar ? (isCollapsed ? 'md:pl-20 pt-6' : 'md:pl-64 pt-6') : 'pt-16'}`}>
                 {children}
             </main>
 

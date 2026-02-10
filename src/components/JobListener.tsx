@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
@@ -12,14 +12,22 @@ interface JobListenerProps {
 export default function JobListener({ jobId, onComplete }: JobListenerProps) {
     const [status, setStatus] = useState<string>('pending')
     const [error, setError] = useState<string | null>(null)
+    const [isTakingLong, setIsTakingLong] = useState(false)
     const supabase = createClient()
     const router = useRouter()
+
+    const isCompletedRef = useRef(false)
+
 
     useEffect(() => {
         if (!jobId) return
 
-        // Initial fetch
-        const fetchStatus = async () => {
+        let pollingInterval: NodeJS.Timeout
+
+        // 1. Define the check function
+        const checkJob = async () => {
+            if (isCompletedRef.current) return
+
             const { data, error } = await supabase
                 .from('jobs')
                 .select('*')
@@ -28,24 +36,38 @@ export default function JobListener({ jobId, onComplete }: JobListenerProps) {
 
             if (error) {
                 console.error('Error fetching job:', error)
-                setError(error.message)
+                // Don't set error state immediately on network blips, just retry
             } else if (data) {
-                setStatus(data.status)
-                if (data.status === 'completed') {
-                    if (onComplete) {
-                        onComplete(data.result)
-                    } else if (data.result?.story_id) {
-                        router.push(`/stories/${data.result.story_id}`)
-                    }
+                if (data.status !== status) setStatus(data.status)
+
+                if (data.status === 'completed' && !isCompletedRef.current) {
+                    isCompletedRef.current = true
+                    handleCompletion(data.result)
                 } else if (data.status === 'failed') {
+                    isCompletedRef.current = true
                     setError(data.error || 'Job failed')
                 }
             }
         }
 
-        fetchStatus()
+        const handleCompletion = (result: any) => {
+            // Clear interval immediately
+            clearInterval(pollingInterval)
 
-        // Realtime subscription
+            if (onComplete) {
+                onComplete(result)
+            } else if (result?.story_id) {
+                router.push(`/stories/${result.story_id}`)
+            }
+        }
+
+        // 2. Initial Check
+        checkJob()
+
+        // 3. Set up Polling (Backup Safety Net) - Checks every 4 seconds
+        pollingInterval = setInterval(checkJob, 4000)
+
+        // 4. Set up Realtime (Speed Layer)
         const channel = supabase
             .channel(`job-${jobId}`)
             .on(
@@ -57,17 +79,12 @@ export default function JobListener({ jobId, onComplete }: JobListenerProps) {
                     filter: `id=eq.${jobId}`,
                 },
                 (payload: any) => {
-                    console.log('Job update received:', payload)
                     const newStatus = payload.new.status
                     setStatus(newStatus)
 
-                    if (newStatus === 'completed') {
-                        if (onComplete) {
-                            onComplete(payload.new.result)
-                        } else if (payload.new.result?.story_id) {
-                            // Default behavior: redirect to story
-                            router.push(`/stories/${payload.new.result.story_id}`)
-                        }
+                    if (newStatus === 'completed' && !isCompletedRef.current) {
+                        isCompletedRef.current = true
+                        handleCompletion(payload.new.result)
                     } else if (newStatus === 'failed') {
                         setError(payload.new.error || 'Job failed')
                     }
@@ -75,13 +92,20 @@ export default function JobListener({ jobId, onComplete }: JobListenerProps) {
             )
             .subscribe()
 
+        // 5. Timeout Warning (60s)
+        const timeoutTimer = setTimeout(() => {
+            if (!isCompletedRef.current) setIsTakingLong(true)
+        }, 60000)
+
         return () => {
+            clearInterval(pollingInterval)
+            clearTimeout(timeoutTimer)
             supabase.removeChannel(channel)
         }
-    }, [jobId, supabase, router, onComplete])
+    }, [jobId, supabase, router, onComplete]) // Removed 'status' to prevent re-subscribing loop
 
     if (status === 'completed') {
-        return <div className="text-green-400 font-semibold">Completed! Redirecting...</div>
+        return <div className="text-green-400 font-semibold animate-pulse">Success! Redirecting...</div>
     }
 
     if (status === 'failed') {
@@ -89,14 +113,26 @@ export default function JobListener({ jobId, onComplete }: JobListenerProps) {
     }
 
     return (
-        <div className="flex flex-col items-center justify-center p-8 space-y-4 rounded-xl glass-dark max-w-md w-full mx-auto">
-            <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex flex-col items-center justify-center p-8 space-y-4 rounded-xl bg-white/10 dark:bg-[#1e1e2e]/50 backdrop-blur-md border border-white/10 max-w-md w-full mx-auto shadow-2xl">
+            {isTakingLong ? (
+                <div className="text-center space-y-2 animate-in fade-in slide-in-from-bottom-2">
+                    <p className="text-amber-400 font-medium">This is taking longer than usual...</p>
+                    <p className="text-sm text-gray-400">The AI might be busy. We are still checking...</p>
+                </div>
+            ) : (
+                <div className="relative">
+                    <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
+                    {/* Optional: Add a subtle pulse effect behind the spinner */}
+                    <div className="absolute inset-0 bg-purple-500/20 blur-xl rounded-full animate-pulse"></div>
+                </div>
+            )}
+
             <div className="text-center">
-                <p className="text-lg font-medium text-gray-200">
+                <p className="text-lg font-medium text-black dark:text-white">
                     Weaving your story...
                 </p>
-                <p className="text-sm text-gray-500 mt-1 capitalize">
-                    Status: {status}
+                <p className="text-xs text-black dark:text-gray-400 mt-2 font-mono uppercase tracking-wider">
+                    Status: {status === 'pending' ? 'QUEUEING' : 'GENERATING'}
                 </p>
             </div>
         </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, useSpring, useTransform, AnimatePresence } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
 import { Homemade_Apple, Inter, Nanum_Brush_Script } from 'next/font/google'

@@ -119,7 +119,7 @@ export default function CreateStory() {
 
     return (
         <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 flex justify-center">
-            <div className="max-w-4xl w-full space-y-8 bg-white dark:bg-black    p-8 md:p-12 rounded-3xl border border-gray-200 dark:border-white/5 shadow-xl dark:shadow-none animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="max-w-4xl w-full space-y-8 bg-white dark:glass-dark p-8 md:p-12 rounded-3xl border border-gray-200 dark:border-white/5 shadow-xl dark:shadow-none animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="text-center space-y-4">
                     <div className="inline-flex items-center justify-center p-3 bg-purple-100 dark:bg-purple-500/10 rounded-2xl mb-2">
                         <Sparkles className="w-8 h-8 text-purple-600 dark:text-purple-400" />

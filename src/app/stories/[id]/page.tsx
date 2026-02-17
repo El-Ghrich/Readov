@@ -8,9 +8,10 @@ import { useSidebar } from '@/context/SidebarContext'
 import {
     BookOpen, CheckCircle, Trash2, StopCircle,
     Share2, Edit3, Image as ImageIcon, Flag,
-    User, Bot, Send, Loader2
+    User, Bot, Send, Loader2, AlertTriangle
 } from 'lucide-react'
 import StoryChoices from '@/components/StoryChoices'
+import StoryBrancher from '@/components/StoryBrancher'
 
 
 export default function StoryPage({ params }: { params: Promise<{ id: string }> }) {
@@ -26,6 +27,7 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
     const [generating, setGenerating] = useState(false)
     const [inputMode, setInputMode] = useState<'ai' | 'custom'>('ai')
     const [customInput, setCustomInput] = useState('')
+    const [showEndStoryModal, setShowEndStoryModal] = useState(false)
 
     const supabase = createClient()
     const router = useRouter()
@@ -48,6 +50,13 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
                     .single()
 
                 if (storyError) throw storyError
+
+                // If story is completed, redirect to reader view
+                if (storyData.is_completed) {
+                    router.replace(`/stories/${storyId}/read`)
+                    return
+                }
+
                 setStory(storyData)
 
                 // Get Parts
@@ -232,10 +241,60 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
     }
 
     const handleComplete = async () => {
-        await supabase
-            .from('stories')
-            .update({ is_completed: true, updated_at: new Date().toISOString() })
-            .eq('id', storyId)
+        // 1. Check if user is authenticated
+        const { data: { user } } = await supabase.auth.getUser()
+
+        console.log("Debug: Attempting to complete story", {
+            userId: user?.id,
+            storyId,
+            storyOwnerId: story?.user_id
+        })
+
+        if (!user) {
+            alert("You must be logged in to save the story.")
+            return
+        }
+
+        // Check ownership locally if possible
+        if (story?.user_id && user.id !== story.user_id) {
+            console.warn("Debug: User ID mismatch!", { current: user.id, owner: story.user_id })
+            alert("Warning: You do not appear to be the owner of this story.")
+        }
+
+        // 2. Compile the full story from parts
+        // sort by part number to ensure correct order
+        const sortedParts = [...parts].sort((a, b) => a.part_number - b.part_number)
+        const fullStoryContent = sortedParts.map(p => p.content).join('\n\n')
+
+        try {
+            const { data, error } = await supabase
+                .from('stories')
+                .update({
+                    is_completed: true,
+                    updated_at: new Date().toISOString(),
+                    full_story: fullStoryContent, // Save the compiled story
+                    // ensure we set context/content if needed, but 'full_story' seems to be the target based on render
+                })
+                .eq('id', storyId)
+                .select()
+
+            if (error) throw error
+
+            if (!data || data.length === 0) {
+                // If 0 rows returned, the update failed to match a row (RLS or ID mismatch)
+                console.warn("Update returned 0 rows. Possible RLS issue or not owner.")
+                alert("Could not save completion. Ensure you are logged in and own this story.")
+                return
+            }
+
+            // 3. Update local state and redirect to Reader
+            setStory(data[0])
+            router.push(`/stories/${storyId}/read`)
+
+        } catch (err) {
+            console.error("Error completing story:", err)
+            alert("Failed to complete story. Please try again.")
+        }
     }
 
     if (loading) return <div className="min-h-screen flex items-center justify-center text-purple-400"><Loader2 className="animate-spin" /></div>
@@ -277,7 +336,7 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
                 ) : (
                     <>
                         {parts.map((part, index) => (
-                            <div key={part.id} className="space-y-6">
+                            <div key={part.id} className="space-y-6 relative">
                                 <div className="group relative bg-white dark:bg-transparent dark:glass-dark p-6 rounded-xl border border-gray-200 dark:border-white/5 shadow-sm dark:shadow-none hover:border-gray-300 dark:hover:border-white/10 transition-colors animate-in fade-in slide-in-from-bottom-4 duration-500">
                                     <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-100 dark:border-white/5">
                                         <div className="flex items-center gap-2 text-xs text-gray-500 font-medium uppercase tracking-wider">
@@ -298,6 +357,21 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
                                     </div>
                                 </div>
 
+                                {/* Mid-Story Branching Point */}
+                                {!story.is_completed && (
+                                    <StoryBrancher
+                                        index={index}
+                                        onRewrite={(instruction) => {
+                                            console.log(`Rewriting from part ${part.part_number}:`, instruction)
+                                            alert(`[Rewrite Feature Mock]\n\nInstruction: ${instruction}\n\nThis would delete all parts after #${part.part_number} and generate a new continuation.`)
+                                        }}
+                                        onBranch={(instruction) => {
+                                            console.log(`Branching at part ${part.part_number}:`, instruction)
+                                            alert(`[Branch Feature Mock]\n\nInstruction: ${instruction}\n\nThis would create a new story ID cloned from parts 1-${part.part_number} and generate a divergent path.`)
+                                        }}
+                                    />
+                                )}
+
                                 {/* Show choices for this part */}
                                 {part.choices && part.choices.length > 0 && (
                                     <StoryChoices
@@ -317,6 +391,19 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
                     <div className="glass p-6 rounded-xl flex items-center justify-center gap-3 text-gray-400 animate-pulse">
                         <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
                         Writing next part...
+                    </div>
+                )}
+
+                {/* Complete Story Button */}
+                {!story.is_completed && parts.length > 0 && !generating && (
+                    <div className="flex justify-center py-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <button
+                            onClick={handleComplete}
+                            className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-full font-bold shadow-lg transition-all transform hover:scale-105"
+                        >
+                            <CheckCircle className="w-5 h-5" />
+                            Save & Finish Story
+                        </button>
                     </div>
                 )}
                 {/* Scroll Anchor */}
@@ -342,6 +429,15 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
                                 }}
                             />
                             <button
+                                onClick={() => setShowEndStoryModal(true)}
+                                disabled={generating}
+                                className="px-4 bg-red-500/10 text-red-600 hover:bg-red-500/20 border border-red-500/20 rounded-full transition-colors disabled:opacity-50 flex items-center gap-2 font-medium whitespace-nowrap"
+                                title="Generate Ending"
+                            >
+                                <StopCircle className="w-5 h-5" />
+                                <span className="hidden md:inline">End Story</span>
+                            </button>
+                            <button
                                 onClick={() => handleContinue('custom')}
                                 disabled={generating || !customInput.trim()}
                                 className="px-6 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors disabled:opacity-50 shadow-md flex items-center gap-2 font-medium"
@@ -364,6 +460,41 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
                     </div>
                 )
             }
+            {/* End Story Confirmation Modal */}
+            {showEndStoryModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-[#1e1e2e] rounded-2xl p-6 max-w-md w-full shadow-2xl border border-gray-200 dark:border-white/10 transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-12 h-12 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+                                <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                                Wrap it up?
+                            </h3>
+                            <p className="text-gray-500 dark:text-gray-400 mb-6">
+                                This will generate a conclusion for your story without any further choices. Are you ready to see how it ends?
+                            </p>
+                            <div className="flex gap-3 w-full">
+                                <button
+                                    onClick={() => setShowEndStoryModal(false)}
+                                    className="flex-1 px-4 py-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        setShowEndStoryModal(false)
+                                        await handleContinue('custom', 'Write a creative and satisfying conclusion to this story. Tie up all loose ends. Do not provide any choices for continuation.')
+                                    }}
+                                    className="flex-1 px-4 py-2 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white rounded-xl font-medium shadow-lg shadow-red-500/20 transition-all hover:scale-[1.02]"
+                                >
+                                    Generate Ending
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     )
 }

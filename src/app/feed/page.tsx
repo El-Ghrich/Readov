@@ -15,9 +15,9 @@ interface Story {
     genre: string;
     created_at: string;
     is_completed: boolean;
-    likes: number; // assuming we have this column or a relation
+    likes: number;
     liked_by_user?: boolean;
-    content_preview?: string; // We might need to fetch the first part content
+    content_preview?: string;
 }
 
 export default function FeedPage() {

@@ -90,7 +90,8 @@ export default function CreateStory() {
                         goal,
                         lesson,
                         level: difficulty,
-                        level_label: DIFFICULTY_LEVELS[difficulty - 1]
+                        // @ts-ignore
+                        level_label: DIFFICULTY_LEVELS[difficulty - 1].label
                     },
                     status: 'pending'
                 })

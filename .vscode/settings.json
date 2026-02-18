@@ -1,6 +1,7 @@
 {
   "deno.enablePaths": [
-    "supabase/functions"
+    "supabase/functions",
+    "supabase/functions/generate-story"
   ],
   "deno.lint": true,
   "deno.unstable": [

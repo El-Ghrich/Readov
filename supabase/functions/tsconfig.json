@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "node",
+    "noEmit": true
+  },
+  "include": ["**/*.ts", "**/*.tsx", "deno.json", "**/*.json"],
+  "exclude": ["node_modules"]
+}

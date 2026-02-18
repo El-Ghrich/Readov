@@ -160,7 +160,7 @@ export default function FeedPage() {
                                     {/* Image Placeholder based on genre */}
                                     {/* Image Placeholder based on genre */}
                                     <div className="h-48 w-full relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
+                                        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent z-10" />
                                         <img
                                             src={getGenreImage(story.genre)}
                                             alt={story.genre}

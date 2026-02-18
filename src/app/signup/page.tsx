@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Lock, Mail, User, Calendar, ArrowRight, Loader2 } from 'lucide-react'
+import { Lock, Mail, User, Calendar, ArrowRight, Loader2, Globe } from 'lucide-react'
 
 export default function SignupPage() {
     const [formData, setFormData] = useState({
@@ -12,16 +12,30 @@ export default function SignupPage() {
         lastName: '',
         email: '',
         dateOfBirth: '',
+        nativeLanguage: 'English',
         password: '',
         confirmPassword: ''
     })
+
+    const LANGUAGES = [
+        { value: 'English', label: 'English' },
+        { value: 'Spanish', label: 'Español' },
+        { value: 'French', label: 'Français' },
+        { value: 'German', label: 'Deutsch' },
+        { value: 'Italian', label: 'Italiano' },
+        { value: 'Portuguese', label: 'Português' },
+        { value: 'Chinese', label: 'Chinese' },
+        { value: 'Japanese', label: 'Japanese' },
+        { value: 'Arabic', label: 'Arabic' },
+        { value: 'Russian', label: 'Russian' },
+    ]
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
     const router = useRouter()
     const supabase = createClient()
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
 
@@ -55,7 +69,8 @@ export default function SignupPage() {
                     data: {
                         first_name: formData.firstName,
                         last_name: formData.lastName,
-                        date_of_birth: formData.dateOfBirth
+                        date_of_birth: formData.dateOfBirth,
+                        native_language: formData.nativeLanguage
                     }
                 }
             })
@@ -157,6 +172,22 @@ export default function SignupPage() {
                                     onChange={handleChange}
                                     className="block w-full pl-10 pr-3 py-3 border border-border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all hover:bg-background/80"
                                 />
+                            </div>
+
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Globe className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                </div>
+                                <select
+                                    name="nativeLanguage"
+                                    value={formData.nativeLanguage}
+                                    onChange={handleChange}
+                                    className="block w-full pl-10 pr-3 py-3 border border-border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all hover:bg-background/80 appearance-none"
+                                >
+                                    {LANGUAGES.map(lang => (
+                                        <option key={lang.value} value={lang.value} className="bg-background text-foreground">{lang.label}</option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div className="relative group">

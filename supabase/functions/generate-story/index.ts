@@ -23,9 +23,11 @@ interface ContinuationParams {
   story_id: string;
   type: "ai" | "custom";
   user_direction?: string; // The text of the choice or custom input
+  selected_choice_index?: number; // Added
   context_summary?: string;
   narrative_context?: any;
   native_language?: string;
+  level_label?: string;
 }
 
 interface StoryResponse {
@@ -42,7 +44,7 @@ class GeminiProvider {
   private apiKey: string;
   private model: string;
 
-  constructor(apiKey: string, model: string = "gemini-1.5-flash") {
+  constructor(apiKey: string, model: string = "gemini-2.5-flash") {
     this.apiKey = apiKey;
     this.model = model;
   }
@@ -55,11 +57,15 @@ class GeminiProvider {
   }
 
   // 2. CONTINUE AN EXISTING STORY
+  // 2. CONTINUE AN EXISTING STORY
   async continueStory(params: ContinuationParams): Promise<StoryResponse> {
     const isCustom = params.type === "custom" && !!params.user_direction;
     const nativeLangInfo = params.native_language
       ? ` (Definitions in ${params.native_language})`
       : "";
+
+    // Use the stored level config
+    const levelConfig = this.getLevelConfig(params.level_label);
 
     const systemPrompt = `You are a professional storyteller and language tutor.
 RULES:
@@ -78,13 +84,15 @@ RULES:
 2. MEMORY: Use the provided 'narrative_context' to maintain continuity. 
    - If a character's status changes (e.g., becomes angry), UPDATE it in the returned JSON.
    - If the location changes, UPDATE 'current_location'.
-3. Write specifically between 150 and 250 words.
-4. Structure: 1-2 engaging paragraphs.
-5. Content: Continue the plot logically.
-6. Options: Provide 3 short, intriguing plot directions for what happens NEXT (max 10 words each) in the Target Language.
+3. LENGTH: Write specifically between ${levelConfig.wordCount} words.
+4. STRUCTURE: ${levelConfig.structure}.
+5. LANGUAGE & STYLE: ${levelConfig.style}.
+6. LEVEL: ${params.level_label || "Intermediate"}. ADJUST STRICTLY TO THIS LEVEL.
+7. Content: Continue the plot logically.
+8. Options: Provide 3 short, intriguing plot directions for what happens NEXT (max 10 words each) in the Target Language.
 ${
   isCustom
-    ? `7. USER INPUT ANALYSIS: 
+    ? `9. USER INPUT ANALYSIS: 
    - The user wrote: "${params.user_direction}"
    - Use this input to drive the story action.
    - Analyze their input for grammar/spelling errors.
@@ -96,6 +104,19 @@ ${
 `;
 
     // Inject the Context so Gemini remembers facts
+    // We also want to respect the original level constraints in continuation
+    // But params here is ContinuationParams which doesn't have level info directly unless we pass it or infer it.
+    // For now, we assume the system prompt rules (which are static per class instance? No, buildSystemPrompt is per call)
+    // Wait, continueStory calls callGemini directly with a HARDCODED system prompt in the previous code.
+    // We need to FIX this. content generation should respect level.
+    // Ideally we should store the level in the 'stories' table and pass it to continueStory job.
+    // For now, let's keep the hardcoded system prompt in continueStory but UPDATED with generic level instructions or pass it through.
+
+    // Actually, looking at continueStory method below, it has its OWN system prompt string.
+    // We should update that too to be dynamic if possible, OR just make it generic but professional.
+    // A better way is to fetch the story level before calling continueStory, but the job params might not have it.
+    // Let's rely on the "professional storyteller and language tutor" persona and add instruction to maintain style.
+
     const userPrompt = `
     CURRENT NARRATIVE CONTEXT: ${JSON.stringify(params.narrative_context || {})}
     STORY SO FAR SUMMARY: ${params.context_summary || "Start of story."}
@@ -163,10 +184,62 @@ ${
     }
   }
 
+  private getLevelConfig(levelLabel?: string) {
+    switch (levelLabel) {
+      case "A1":
+        return {
+          wordCount: "100-150",
+          structure: "1 simple paragraph",
+          style:
+            "Very simple sentences. High-frequency vocabulary (top 500 words). Avoid idioms. Focus on concrete actions. Present tense preference.",
+        };
+      case "A2":
+        return {
+          wordCount: "150-200",
+          structure: "1-2 short paragraphs",
+          style:
+            "Compound sentences (and, but, because). Basic descriptive language. Everyday topics. Simple past tones.",
+        };
+      case "B1":
+        return {
+          wordCount: "200-250",
+          structure: "2 paragraphs",
+          style:
+            "Connected text. Mix of simple and complex sentences. Clear descriptions of events and feelings.",
+        };
+      case "B2":
+        return {
+          wordCount: "250-300",
+          structure: "2-3 paragraphs",
+          style:
+            "Complex arguments/narratives. Varied sentence structures. Specific vocabulary. Abstract topics.",
+        };
+      case "C1":
+        return {
+          wordCount: "300-350",
+          structure: "3 paragraphs",
+          style:
+            "Long, complex, and detailed. Flexible use of language. Idiomatic expressions. Subtleties.",
+        };
+      case "C2":
+        return {
+          wordCount: "350-400",
+          structure: "3-4 paragraphs",
+          style:
+            "Sophisticated, literary, and precise. Nuanced meaning. Rich vocabulary. Complete fluency.",
+        };
+      default:
+        // Default to a middle ground if undefined
+        return {
+          wordCount: "200-250",
+          structure: "2 engaging paragraphs",
+          style: "Standard storytelling flow. Moderate vocabulary.",
+        };
+    }
+  }
+
   private buildSystemPrompt(params: GenerationParams): string {
-    const complexity = params.level_label
-      ? `Level ${params.level_label}`
-      : `Level ${params.level || 5}/10`;
+    const levelConfig = this.getLevelConfig(params.level_label);
     const nativeLangInfo = params.native_language
       ? ` (Definitions in ${params.native_language})`
       : "";
@@ -184,19 +257,20 @@ RULES:
      },
      "vocabulary_highlight": { "word": "definition" } (Object with 1-3 sophisticated words${nativeLangInfo})
    }
-2. Write between 150 and 250 words.
-3. Structure: 1-2 engaging paragraphs.
-4. Content: START the story immediately with action or dialogue.
-5. Complexity: ${complexity}. Adjust vocabulary.
-6. Language: Write ONLY in ${params.language || "English"}.
-7. Options: Provide 3 short, intriguing plot directions.
-${params.goal ? `8. Goal: The characters should aim for: '${params.goal}'` : ""}
-${params.lesson ? `9. Theme: Incorporate the theme: '${params.lesson}'` : ""}
+2. LENGTH: Write specifically between ${levelConfig.wordCount} words.
+3. STRUCTURE: ${levelConfig.structure}.
+4. LANGUAGE & STYLE: ${levelConfig.style}.
+5. LEVEL: ${params.level_label || "Intermediate"}. ADJUST STRICTLY TO THIS LEVEL.
+6. Content: START the story immediately with action or dialogue.
+7. Language: Write ONLY in ${params.language || "English"}.
+8. Options: Provide 3 short, intriguing plot directions.
+${params.goal ? `9. Goal: The characters should aim for: '${params.goal}'` : ""}
+${params.lesson ? `10. Theme: Incorporate the theme: '${params.lesson}'` : ""}
 `;
   }
 
   private buildStartUserPrompt(params: GenerationParams): string {
-    return `Write the beginning of my ${params.genre} story. Ensure it is at least 150 words long.`;
+    return `Write the beginning of my ${params.genre} story. Follow the level constraints strictly.`;
   }
 }
 
@@ -284,7 +358,7 @@ Deno.serve(async (req) => {
           full_story: content,
           is_published: false,
           is_completed: false,
-          user_level: level_label,
+          language_level: level_label,
           narrative_context: narrative_context,
         })
         .select()
@@ -297,10 +371,9 @@ Deno.serve(async (req) => {
         story_id: story.id,
         part_number: 1,
         content: content,
-        suggested_choices: options,
+        choices: options,
         vocabulary_highlight: vocabulary_highlight,
         is_user_input: false,
-        order_index: 1,
       });
 
       if (partError) throw partError;
@@ -325,6 +398,7 @@ Deno.serve(async (req) => {
         story_id,
         type,
         user_direction,
+        selected_choice_index,
         context_summary,
         narrative_context,
       } = job.params || {};
@@ -336,19 +410,43 @@ Deno.serve(async (req) => {
       // 1. Find the last part (Part N)
       const { data: lastParts } = await supabase
         .from("story_parts")
-        .select("id, part_number")
+        .select("id, part_number, choices")
         .eq("story_id", story_id)
         .order("part_number", { ascending: false })
         .limit(1);
 
+      // Fetch story level
+      const { data: storyData } = await supabase
+        .from("stories")
+        .select("language_level")
+        .eq("id", story_id)
+        .single();
+
+      const storyLevel = storyData?.language_level || "Intermediate";
+
       const lastPart = lastParts?.[0];
+
+      // Resolve user_direction for AI choice
+      let resolvedUserDirection = user_direction;
+      if (
+        type === "ai" &&
+        typeof selected_choice_index === "number" &&
+        lastPart
+      ) {
+        const choices = lastPart.choices || [];
+        if (choices[selected_choice_index]) {
+          resolvedUserDirection = choices[selected_choice_index];
+        }
+      }
 
       // 2. Update it with what the user selected to trigger this new generation
       if (lastPart) {
         await supabase
           .from("story_parts")
           .update({
-            selected_choice: user_direction, // <--- SAVING THE CHOICE HERE
+            // selected_choice is removed.
+            selected_choice_index: selected_choice_index,
+            user_custom_input: type === "custom" ? user_direction : null,
             // If custom input, we also save it here?
             // Ideally selected_choice holds the button text,
             // user_custom_input holds typed text.
@@ -371,10 +469,12 @@ Deno.serve(async (req) => {
       } = await aiProvider.continueStory({
         story_id,
         type,
-        user_direction,
+        user_direction: resolvedUserDirection,
+        // selected_choice_index is not strictly needed by AI if user_direction (text) is resolved
         context_summary,
         narrative_context,
         native_language: userNativeLanguage,
+        level_label: storyLevel, // Pass the level
       });
 
       // Calculate next part number
@@ -385,14 +485,12 @@ Deno.serve(async (req) => {
         story_id,
         part_number: nextPartNumber,
         content: content,
-        suggested_choices: options,
+        choices: options,
         // We track 'user_custom_input' on the NEW part only if it was TYPED (custom)
-        // If it was a button click (ai), we don't need it here because we saved it in previous part's selected_choice
         user_custom_input: type === "custom" ? user_direction : null,
         correction: correction,
         vocabulary_highlight: vocabulary_highlight,
         is_user_input: false,
-        order_index: nextPartNumber,
       });
 
       if (partError) throw partError;

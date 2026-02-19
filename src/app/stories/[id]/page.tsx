@@ -9,7 +9,6 @@ import { Loader2, AlertTriangle, CheckCircle } from "lucide-react";
 // Import Sub-Components
 import { StoryHeader } from "@/components/story/StoryHeader";
 import { StoryPartItem } from "@/components/story/StoryPartItem";
-import { StoryControls } from "@/components/story/StoryControls";
 
 // --- Types ---
 
@@ -32,7 +31,7 @@ export interface Story {
   title: string;
   genre: string;
   target_language: string;
-  user_level: string;
+  language_level: string;
   narrative_context: NarrativeContext;
   is_completed: boolean;
   is_published: boolean;
@@ -46,13 +45,12 @@ export interface StoryPart {
   story_id: string;
   part_number: number;
   content: string;
-  suggested_choices?: string[];
-  selected_choice?: string | null;
+  choices?: string[];
+  selected_choice_index?: number | null; // Added
   user_custom_input?: string;
   correction?: string;
   vocabulary_highlight?: Record<string, string>;
   is_user_input: boolean;
-  order_index: number;
   created_at: string;
 }
 
@@ -175,7 +173,7 @@ export default function StoryPage({
       )
       .subscribe();
 
-    // B. Subscribe to STORY PART inserts (Content)
+    // B. Subscribe to STORY PART inserts (Content) AND updates
     const contentChannel = supabase
       .channel(`parts-filter-${storyId}`)
       .on(
@@ -196,6 +194,21 @@ export default function StoryPage({
           setGenerating(false);
         },
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "story_parts",
+          filter: `story_id=eq.${storyId}`,
+        },
+        (payload) => {
+          const updatedPart = payload.new as StoryPart;
+          setParts((prev) =>
+            prev.map((p) => (p.id === updatedPart.id ? updatedPart : p)),
+          );
+        },
+      )
       .subscribe();
 
     return () => {
@@ -213,10 +226,28 @@ export default function StoryPage({
 
   // 6. Action Handlers
 
-  const handleTurn = async (text: string, type: "custom" | "ai" = "custom") => {
+  const handleTurn = async (
+    text: string,
+    type: "custom" | "ai" = "custom",
+    index?: number,
+  ) => {
     if (generating) return;
     setGenerating(true);
     setCustomInput("");
+
+    // --- OPTIMISTIC UPDATE ---
+    // Update the local state immediately to show the selection
+    setParts((prev) => {
+      if (prev.length === 0) return prev;
+      const lastPart = prev[prev.length - 1];
+      const updatedLastPart = {
+        ...lastPart,
+        selected_choice_index: index ?? null,
+        user_custom_input: type === "custom" ? text : undefined,
+      };
+      return [...prev.slice(0, -1), updatedLastPart];
+    });
+    // -------------------------
 
     // Optimistic Scroll
     setTimeout(
@@ -244,6 +275,7 @@ export default function StoryPage({
           story_id: storyId,
           type: type,
           user_direction: type === "custom" ? text : null,
+          selected_choice_index: index, // Added
           context_summary: contextSummary,
           narrative_context: narrativeContext,
         },
@@ -253,6 +285,8 @@ export default function StoryPage({
       if (error) throw error;
     } catch (err) {
       console.error("Failed to queue turn:", err);
+      // Revert optimistic update if failed (basic implementation)
+      // Ideally we'd rollback to previous state, but we'll just alert for now.
       alert("Something went wrong. Please try again.");
       setGenerating(false);
       if (type === "custom") setCustomInput(text);
@@ -327,6 +361,7 @@ export default function StoryPage({
         story={story}
         onDelete={handleDelete}
         onComplete={handleComplete}
+        onEndStory={() => setShowEndStoryModal(true)}
       />
 
       {/* B. Content Stream */}
@@ -338,7 +373,9 @@ export default function StoryPage({
             // Only show choices if it's the LAST part
             isLast={index === parts.length - 1}
             isGenerating={generating}
-            onChoiceSelect={(text) => handleTurn(text, "ai")}
+            onChoiceSelect={(text, type, index) =>
+              handleTurn(text, type, index)
+            }
             onBranch={() => console.log("Branch", part.id)}
           />
         ))}
@@ -370,16 +407,6 @@ export default function StoryPage({
 
         <div ref={bottomRef} className="h-4" />
       </div>
-
-      {/* E. Controls */}
-      <StoryControls
-        input={customInput}
-        setInput={setCustomInput}
-        onSend={() => handleTurn(customInput, "custom")}
-        onEndStory={() => setShowEndStoryModal(true)}
-        isGenerating={generating}
-        isCollapsed={isCollapsed}
-      />
 
       {/* F. End Story Modal */}
       {showEndStoryModal && (

@@ -16,7 +16,7 @@ type StoryPartProps = {
   part: any;
   isLast: boolean;
   isGenerating: boolean;
-  onChoiceSelect: (text: string) => void;
+  onChoiceSelect: (text: string, type: "ai" | "custom", index?: number) => void;
   onBranch: () => void;
 };
 
@@ -28,8 +28,13 @@ export function StoryPartItem({
   onBranch,
 }: StoryPartProps) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const isSelected = (choice: string) => {
-    return part.selected_choice === choice || part.user_custom_input === choice;
+  const isSelected = (choice: string, index: number) => {
+    console.log(part.selected_choice_index);
+    if (typeof part.selected_choice_index === "number") {
+      return part.selected_choice_index === index;
+    }
+    // Fallback? If no index, maybe it was a custom input equal to the choice text
+    return part.user_custom_input === choice;
   };
   return (
     <div className="space-y-6 relative group animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -72,43 +77,42 @@ export function StoryPartItem({
         {/* -------------------------------------------------- */}
         {/* SECTION 3: The Director's Chair (Past Options)     */}
         {/* -------------------------------------------------- */}
-        {!isLast &&
-          part.suggested_choices &&
-          part.suggested_choices.length > 0 && (
-            <div className="mt-6 pt-4 border-t border-gray-100 dark:border-white/5">
-              <button
-                onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-                className="flex items-center justify-between w-full text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-xs uppercase tracking-wider">
-                    Decision Log
+        {!isLast && part.choices && part.choices.length > 0 && (
+          <div className="mt-6 pt-4 border-t border-gray-100 dark:border-white/5">
+            <button
+              onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+              className="flex items-center justify-between w-full text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-xs uppercase tracking-wider">
+                  Decision Log
+                </span>
+                {/* Show what they picked in the collapsed view */}
+                {!isHistoryOpen && (
+                  <span className="bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded text-xs truncate max-w-[200px]">
+                    {typeof part.selected_choice_index === "number" &&
+                    part.choices?.[part.selected_choice_index]
+                      ? part.choices[part.selected_choice_index]
+                      : part.user_custom_input || "Custom Input"}
                   </span>
-                  {/* Show what they picked in the collapsed view */}
-                  {!isHistoryOpen && (
-                    <span className="bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded text-xs truncate max-w-[200px]">
-                      {part.selected_choice ||
-                        part.user_custom_input ||
-                        "Custom Input"}
-                    </span>
-                  )}
-                </div>
-                {isHistoryOpen ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
                 )}
-              </button>
+              </div>
+              {isHistoryOpen ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </button>
 
-              {/* Collapsible Content */}
-              {isHistoryOpen && (
-                <div className="mt-3 space-y-2 animate-in slide-in-from-top-2 duration-200">
-                  {part.suggested_choices.map((choice: string, idx: number) => {
-                    const active = isSelected(choice);
-                    return (
-                      <div
-                        key={idx}
-                        className={`
+            {/* Collapsible Content */}
+            {isHistoryOpen && (
+              <div className="mt-3 space-y-2 animate-in slide-in-from-top-2 duration-200">
+                {part.choices.map((choice: string, idx: number) => {
+                  const active = isSelected(choice, idx);
+                  return (
+                    <div
+                      key={idx}
+                      className={`
                         p-3 rounded-lg text-sm border flex items-center justify-between
                         ${
                           active
@@ -116,41 +120,38 @@ export function StoryPartItem({
                             : "bg-gray-50 border-gray-100 text-gray-500 dark:bg-white/5 dark:border-white/5 dark:text-gray-500"
                         }
                       `}
-                      >
-                        <span>{choice}</span>
-                        {active && <Check className="w-4 h-4" />}
-                      </div>
-                    );
-                  })}
-                  {/* Handle case where they typed something custom that wasn't an option */}
-                  {!part.suggested_choices.includes(part.selected_choice) &&
-                    part.selected_choice && (
-                      <div className="p-3 rounded-lg text-sm border bg-purple-50 border-purple-200 text-purple-800 flex items-center justify-between">
-                        <span>Custom: {part.selected_choice}</span>
-                        <Check className="w-4 h-4" />
-                      </div>
-                    )}
-                </div>
-              )}
-            </div>
-          )}
+                    >
+                      <span>{choice}</span>
+                      {active && <Check className="w-4 h-4" />}
+                    </div>
+                  );
+                })}
+                {/* Handle case where they typed something custom that wasn't an option */}
+                {part.user_custom_input && (
+                  <div className="p-3 rounded-lg text-sm border bg-purple-50 dark:bg-white/20  border-purple-200 dark:border-white/5 text-purple-800 dark:text-purple-200 flex items-center justify-between">
+                    <span>Custom: {part.user_custom_input}</span>
+                    <Check className="w-4 h-4" />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* -------------------------------------------------- */}
       {/* SECTION 4: Active Choices (Only if Last Part)      */}
       {/* -------------------------------------------------- */}
-      {isLast &&
-        part.suggested_choices &&
-        part.suggested_choices.length > 0 && (
-          <div className="mt-4">
-            <StoryChoices
-              choices={part.suggested_choices}
-              onSelect={onChoiceSelect}
-              isLoading={isGenerating}
-              disabled={isGenerating}
-            />
-          </div>
-        )}
+      {isLast && part.choices && part.choices.length > 0 && (
+        <div className="mt-4">
+          <StoryChoices
+            choices={part.choices}
+            onSelect={onChoiceSelect}
+            isLoading={isGenerating}
+            disabled={isGenerating}
+          />
+        </div>
+      )}
     </div>
   );
 }

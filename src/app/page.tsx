@@ -1,7 +1,15 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles, BookOpen, Share2, Infinity, Smartphone, Target, Palette, Save, HelpCircle, Lightbulb, Star } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  HelpCircle,
+  Lightbulb,
+  Star,
+  Target,
+} from "lucide-react";
 import SplitHero from "@/components/SplitHero";
 import { QuillCursor } from "@/components/QuillCursor";
+import FeatureCards from "@/components/FeatureCards";
 
 export default function Home() {
   return (
@@ -14,28 +22,15 @@ export default function Home() {
       <section id="features" className="py-24 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">Story Generation Features</h2>
-            <p className="text-xl text-muted-foreground">Everything you need to create amazing stories with AI</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
+              Story Generation Features
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Everything you need to create amazing stories with AI
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              { icon: Infinity, title: "Unlimited Stories", desc: "Create endlessly. No limits, no boundaries — just pure imagination powered by cutting-edge AI." },
-              { icon: Smartphone, title: "Edutainment Scenes", desc: "Swipe through your stories like social posts — but this time, you're not consuming content, you're creating it." },
-              { icon: Share2, title: "Share Your Art", desc: "Instantly share your stories with friends or the world — and join a growing network of creators." },
-              { icon: Target, title: "Goal-Oriented Story", desc: "Every story has a purpose. Set your goals and watch AI craft tales that teach and inspire." },
-              { icon: Palette, title: "Multiple Genres", desc: "From galaxies far away to moments in history — explore limitless genres and turn any subject into an adventure." },
-              { icon: Save, title: "Smart Journey", desc: "Easily save and continue your creations. Build a smart library of stories that grows with your imagination." }
-            ].map((item, i) => (
-              <div key={i} className="bg-card p-8 rounded-2xl border border-border shadow-sm hover:border-primary/50 transition-all hover:-translate-y-2 group">
-                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <item.icon className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-2">{item.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
+          <FeatureCards />
         </div>
       </section>
 
@@ -45,8 +40,13 @@ export default function Home() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">The "Why Verse"</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">Turn curiosity into clarity. Our interactive 'WhyVerse' page helps learners understand the purpose behind every subject.</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
+              The "Why Verse"
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Turn curiosity into clarity. Our interactive 'WhyVerse' page helps
+              learners understand the purpose behind every subject.
+            </p>
           </div>
 
           <div className="flex flex-col lg:flex-row gap-16 items-center">
@@ -55,13 +55,24 @@ export default function Home() {
               <div className="bg-card/30 backdrop-blur-md rounded-3xl p-8 border border-border shadow-lg max-w-lg mx-auto transform rotate-1 hover:rotate-0 transition-transform duration-500">
                 <div className="flex items-center gap-3 mb-6 pb-6 border-b border-border">
                   <HelpCircle className="w-8 h-8 text-primary" />
-                  <span className="text-xl font-bold text-foreground">Why Am I Learning This?</span>
+                  <span className="text-xl font-bold text-foreground">
+                    Why Am I Learning This?
+                  </span>
                 </div>
                 <div className="space-y-4">
                   {[
-                    { q: "Why do I need to learn math?", a: "Math helps you solve everyday problems, manage money, and understand the world!" },
-                    { q: "Why is history important?", a: "History teaches us about the past so we can make better decisions for the future." },
-                    { q: "Why learn science?", a: "Science explains how everything works and helps you become a problem solver!" }
+                    {
+                      q: "Why do I need to learn math?",
+                      a: "Math helps you solve everyday problems, manage money, and understand the world!",
+                    },
+                    {
+                      q: "Why is history important?",
+                      a: "History teaches us about the past so we can make better decisions for the future.",
+                    },
+                    {
+                      q: "Why learn science?",
+                      a: "Science explains how everything works and helps you become a problem solver!",
+                    },
                   ].map((item, i) => (
                     <div key={i} className="group cursor-none">
                       <div className="p-4 bg-card/50 rounded-lg text-foreground font-medium group-hover:bg-primary/10 transition-colors flex justify-between items-center">
@@ -82,16 +93,30 @@ export default function Home() {
             {/* Why Features */}
             <div className="flex-1 space-y-8">
               {[
-                { icon: Target, title: "Real-World Connections", desc: "Discover how every subject connects to the world around us, turning abstract lessons into real-life meaning." },
-                { icon: Lightbulb, title: "Interactive Q&A", desc: "Because every 'Why?' deserves an inspiring answer — instant, engaging, and designed to spark wonder." },
-                { icon: Star, title: "Motivation Booster", desc: "Turns obligation into inspiration — so learners move from 'I have to' to 'I can't wait to.'" }
+                {
+                  icon: Target,
+                  title: "Real-World Connections",
+                  desc: "Discover how every subject connects to the world around us, turning abstract lessons into real-life meaning.",
+                },
+                {
+                  icon: Lightbulb,
+                  title: "Interactive Q&A",
+                  desc: "Because every 'Why?' deserves an inspiring answer — instant, engaging, and designed to spark wonder.",
+                },
+                {
+                  icon: Star,
+                  title: "Motivation Booster",
+                  desc: "Turns obligation into inspiration — so learners move from 'I have to' to 'I can't wait to.'",
+                },
               ].map((item, i) => (
                 <div key={i} className="flex gap-4">
                   <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
                     <item.icon className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h4 className="text-lg font-bold text-foreground mb-1">{item.title}</h4>
+                    <h4 className="text-lg font-bold text-foreground mb-1">
+                      {item.title}
+                    </h4>
                     <p className="text-muted-foreground">{item.desc}</p>
                   </div>
                 </div>
@@ -113,12 +138,16 @@ export default function Home() {
               </h2>
 
               <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Stop reading stories. Start creating them. <br className="hidden md:block" />
+                Stop reading stories. Start creating them.{" "}
+                <br className="hidden md:block" />
                 Join a community where imagination, AI, and learning meet.
               </p>
 
-              <div className="pt-8">
-                <Link href="/create" className="btn-primary px-12 py-6 text-xl flex items-center gap-3">
+              <div className="pt-8 ">
+                <Link
+                  href="/create"
+                  className="btn-primary  hover:bg-purple-500 px-12 py-6 text-xl flex items-center gap-3"
+                >
                   <Sparkles className="w-5 h-5" />
                   Create Your Story Now
                   <ArrowRight className="w-5 h-5" />

@@ -9,6 +9,7 @@ import { Loader2, AlertTriangle, CheckCircle } from "lucide-react";
 // Import Sub-Components
 import { StoryHeader } from "@/components/story/StoryHeader";
 import { StoryPartItem } from "@/components/story/StoryPartItem";
+import { GravityStarsBackground } from "@/components/animate-ui/components/backgrounds/gravity-stars";
 
 // --- Types ---
 
@@ -446,6 +447,14 @@ export default function StoryPage({
           </div>
         </div>
       )}
+      {/* <GravityStarsBackground
+        className="absolute z-0 inset-0 flex items-center justify-center rounded-xl"
+        starsCount={100}
+        glowIntensity={20}
+        glowAnimation={"ease"}
+        gravityStrength={75}
+        color="#c5b0f7"
+      /> */}
     </div>
   );
 }

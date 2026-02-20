@@ -14,6 +14,7 @@ interface GenerationParams {
   language?: string;
   goal?: string;
   lesson?: string;
+  premise?: string;
   level?: number;
   level_label?: string;
   native_language?: string;
@@ -266,11 +267,12 @@ RULES:
 8. Options: Provide 3 short, intriguing plot directions.
 ${params.goal ? `9. Goal: The characters should aim for: '${params.goal}'` : ""}
 ${params.lesson ? `10. Theme: Incorporate the theme: '${params.lesson}'` : ""}
+${params.premise ? `11. PREMISE: Use this starting concept: '${params.premise}'` : ""}
 `;
   }
 
   private buildStartUserPrompt(params: GenerationParams): string {
-    return `Write the beginning of my ${params.genre} story. Follow the level constraints strictly.`;
+    return `Write the beginning of my ${params.genre} story${params.premise ? ` based on the premise: "${params.premise}"` : ""}. Follow the level constraints strictly.`;
   }
 }
 
@@ -330,6 +332,7 @@ Deno.serve(async (req) => {
         language = "English",
         goal,
         lesson,
+        premise,
         level,
         level_label,
       } = job.params || {};
@@ -340,6 +343,7 @@ Deno.serve(async (req) => {
           language,
           goal,
           lesson,
+          premise,
           level,
           level_label,
           native_language: userNativeLanguage,

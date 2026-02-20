@@ -17,6 +17,7 @@ import {
   Target,
   BookOpen,
   BarChart,
+  PenTool,
 } from "lucide-react";
 
 const GENRES = [
@@ -137,6 +138,7 @@ export default function CreateStory() {
     const language = formData.get("language") as string;
     const goal = formData.get("goal") as string;
     const lesson = formData.get("lesson") as string;
+    const premise = formData.get("premise") as string;
 
     try {
       // Get current user
@@ -159,6 +161,7 @@ export default function CreateStory() {
             language,
             goal,
             lesson,
+            premise,
             level: DIFFICULTY_LEVELS[difficultyIndex].value,
             // @ts-ignore
             level_label: DIFFICULTY_LEVELS[difficultyIndex].label, // e.g., "A1"
@@ -190,7 +193,7 @@ export default function CreateStory() {
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 flex justify-center">
-      <div className="max-w-4xl w-full space-y-8 bg-white dark:glass-dark p-8 md:p-12 rounded-3xl border border-gray-200 dark:border-white/5 shadow-xl dark:shadow-none animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="max-w-4xl w-full space-y-8 bg-white dark:bg-[#1e1e2e]/90 backdrop-blur-xl p-8 md:p-12 rounded-3xl border border-gray-200 dark:border-white/10 shadow-xl dark:shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="text-center space-y-4">
           <div className="inline-flex items-center justify-center p-3 bg-purple-100 dark:bg-purple-500/10 rounded-2xl mb-2">
             <Sparkles className="w-8 h-8 text-purple-600 dark:text-purple-400" />
@@ -309,6 +312,27 @@ export default function CreateStory() {
                 id="goal"
                 className="block w-full px-4 py-4 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/40 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all hover:bg-gray-100 dark:hover:bg-black/60"
                 placeholder="e.g. Find the lost treasure"
+              />
+            </div>
+
+            {/* Custom Premise */}
+            <div className="space-y-4 md:col-span-2">
+              <label
+                htmlFor="premise"
+                className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white"
+              >
+                <PenTool className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                Custom Premise{" "}
+                <span className="text-sm font-normal text-gray-500">
+                  (Optional)
+                </span>
+              </label>
+              <textarea
+                name="premise"
+                id="premise"
+                rows={2}
+                className="block w-full px-4 py-4 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/40 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all hover:bg-gray-100 dark:hover:bg-black/60"
+                placeholder="e.g. A detective in 1920s Paris looking for a stolen painting..."
               />
             </div>
 

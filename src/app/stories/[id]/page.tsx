@@ -32,6 +32,7 @@ export interface Story {
   title: string;
   genre: string;
   target_language: string;
+  language?: string;
   language_level: string;
   narrative_context: NarrativeContext;
   is_completed: boolean;
@@ -378,12 +379,13 @@ export default function StoryPage({
               handleTurn(text, type, index)
             }
             onBranch={() => console.log("Branch", part.id)}
+            language={story.language || story.target_language || "English"}
           />
         ))}
 
         {/* C. Loading Skeleton */}
         {generating && (
-          <div className="animate-pulse flex gap-4 p-6 bg-white/50 rounded-xl border border-gray-100">
+          <div className="animate-pulse flex gap-4 p-6 dark:bg-[#1e1e2e] bg-white/50 rounded-xl border border-gray-100">
             <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
               <Loader2 className="w-4 h-4 text-purple-600 animate-spin" />
             </div>

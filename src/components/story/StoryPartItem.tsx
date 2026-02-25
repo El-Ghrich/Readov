@@ -2,15 +2,83 @@
 import {
   User,
   Bot,
-  AlertTriangle,
+  Lightbulb,
   GitFork,
   ChevronDown,
   ChevronUp,
   Check,
+  BookOpen,
+  PlusCircle,
+  CheckCircle2,
+  Loader2,
 } from "lucide-react";
-import StoryChoices from "@/components/StoryChoices"; // Ensure this exists
+import StoryChoices from "@/components/StoryChoices";
 import { useState } from "react";
-import { cn } from "@/lib/utils"; // Assuming you have a standard cn utility, or use template literals
+import { cn } from "@/lib/utils";
+import { saveVocabulary } from "@/app/actions/vocabulary";
+
+function VocabularyPill({
+  word,
+  translation,
+  language,
+  story_id,
+  context_sentence,
+}: {
+  word: string;
+  translation: string;
+  language: string;
+  story_id: string;
+  context_sentence?: string;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = async () => {
+    if (saved || saving) return;
+    setSaving(true);
+    const parsedStoryId = parseInt(story_id);
+    const res = await saveVocabulary({
+      word,
+      translation,
+      language,
+      story_id: isNaN(parsedStoryId) ? undefined : parsedStoryId,
+      context_sentence,
+    });
+    setSaving(false);
+    if (res?.success) setSaved(true);
+  };
+
+  return (
+    <div className="group relative flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#1e1e2e] border border-gray-200 dark:border-white/10 rounded-full text-sm shadow-sm hover:border-purple-300 dark:hover:border-purple-700 transition-colors">
+      <span className="font-medium text-gray-900 dark:text-gray-100">
+        {word}
+      </span>
+      <span className="text-gray-400 dark:text-gray-500 mx-1">-</span>
+      <span className="text-gray-600 dark:text-gray-300">{translation}</span>
+
+      <button
+        onClick={handleSave}
+        disabled={saving || saved}
+        className={cn(
+          "ml-1 p-1 rounded-full transition-colors",
+          saved
+            ? "text-green-500 bg-green-50 dark:bg-green-500/20"
+            : "text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-600/20",
+          saving && "opacity-50 cursor-not-allowed",
+        )}
+        title={saved ? "Saved to Grimoire" : "Save to Grimoire"}
+      >
+        {saving ? (
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        ) : saved ? (
+          <CheckCircle2 className="w-3.5 h-3.5" />
+        ) : (
+          <PlusCircle className="w-3.5 h-3.5" />
+        )}
+      </button>
+    </div>
+  );
+}
 
 type StoryPartProps = {
   part: any;
@@ -18,6 +86,7 @@ type StoryPartProps = {
   isGenerating: boolean;
   onChoiceSelect: (text: string, type: "ai" | "custom", index?: number) => void;
   onBranch: () => void;
+  language: string;
 };
 
 export function StoryPartItem({
@@ -26,8 +95,11 @@ export function StoryPartItem({
   isGenerating,
   onChoiceSelect,
   onBranch,
+  language,
 }: StoryPartProps) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isVocabOpen, setIsVocabOpen] = useState(false);
+
   const isSelected = (choice: string, index: number) => {
     console.log(part.selected_choice_index);
     if (typeof part.selected_choice_index === "number") {
@@ -40,11 +112,15 @@ export function StoryPartItem({
     <div className="space-y-6 relative group animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* 1. Tutor Feedback */}
       {part.correction && (
-        <div className="mx-auto max-w-2xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 p-3 rounded-lg flex items-start gap-3 text-sm text-yellow-800 dark:text-yellow-200">
-          <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+        <div className="mx-auto max-w-2xl bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/30 p-4 rounded-xl flex items-start gap-4 text-sm text-indigo-900 dark:text-indigo-200 shadow-sm transition-colors">
+          <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-800/50 flex items-center justify-center shrink-0 mt-0.5">
+            <Lightbulb className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          </div>
           <div>
-            <span className="font-bold block mb-1">Tutor Feedback:</span>
-            {part.correction}
+            <span className="font-bold flex items-center gap-1.5 mb-1 text-indigo-700 dark:text-indigo-300 tracking-wide uppercase text-[11px]">
+              Tutor Tip
+            </span>
+            <p className="leading-relaxed opacity-95">{part.correction}</p>
           </div>
         </div>
       )}
@@ -73,6 +149,77 @@ export function StoryPartItem({
         <div className="prose prose-lg dark:prose-invert max-w-none leading-relaxed text-gray-800 dark:text-gray-200">
           {part.content}
         </div>
+
+        {/* Vocabulary Highlight */}
+        {part.vocabulary_highlight &&
+          Object.keys(part.vocabulary_highlight).length > 0 && (
+            <div className="mt-6 p-4 rounded-xl bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/20 transition-colors">
+              <button
+                onClick={() => setIsVocabOpen(!isVocabOpen)}
+                className="w-full flex items-center justify-between text-left group"
+              >
+                <h4 className="text-sm font-semibold text-purple-800 dark:text-purple-300 flex items-center gap-2 uppercase tracking-wider group-hover:text-purple-600 transition-colors">
+                  <BookOpen className="w-4 h-4" /> Story Vocabulary
+                </h4>
+                {isVocabOpen ? (
+                  <ChevronUp className="w-4 h-4 text-purple-500" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-purple-500" />
+                )}
+              </button>
+
+              {isVocabOpen && (
+                <div className="flex flex-wrap gap-2 mt-4 animate-in slide-in-from-top-2 duration-200">
+                  {Object.entries(part.vocabulary_highlight).map(
+                    ([word, definition]) => {
+                      // Split by punctuation keeping the punctuation.
+                      // Using a simple regex to match sentences safely including the first one.
+                      const sentences = part.content.match(
+                        /[^.!?]+[.!?]*/g,
+                      ) || [part.content];
+
+                      // Escape special characters in the word for regex
+                      const escapedWord = word.replace(
+                        /[.*+?^${}()|[\]\\]/g,
+                        "\\$&",
+                      );
+
+                      // Case-insensitive regex with broad word boundaries
+                      // \b handles ascii well, but for international characters we use a wider check or just \b with 'i' flag
+                      const wordPattern = new RegExp(
+                        `(^|\\P{L})${escapedWord}(\\P{L}|$)`,
+                        "iu",
+                      );
+
+                      let context_sentence = sentences
+                        .find((s: string) => wordPattern.test(s))
+                        ?.trim();
+
+                      // Fallback if the strict unicode regex didn't catch it (e.g. edge cases)
+                      if (!context_sentence) {
+                        context_sentence = sentences
+                          .find((s: string) =>
+                            s.toLowerCase().includes(word.toLowerCase()),
+                          )
+                          ?.trim();
+                      }
+
+                      return (
+                        <VocabularyPill
+                          key={word}
+                          word={word}
+                          translation={definition as string}
+                          language={language}
+                          story_id={part.story_id}
+                          context_sentence={context_sentence}
+                        />
+                      );
+                    },
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
         {/* -------------------------------------------------- */}
         {/* SECTION 3: The Director's Chair (Past Options)     */}

@@ -35,15 +35,15 @@ export default function AppLayout({
   // Show sidebar if authenticated AND not on a public page
   const showSidebar = !!user && !isPublic;
 
-  // Show Navbar only on public pages
   const showNavbar = isPublic;
+  const isHome = pathname === "/";
 
   // Show Footer only on public pages
   const showFooter = isPublic;
 
   return (
     <div className="min-h-screen flex flex-col">
-      {showNavbar && <Navbar user={user} />}
+      {showNavbar && <Navbar user={user} isHome={isHome} />}
 
       {showSidebar && <Sidebar user={user} />}
 
@@ -58,13 +58,18 @@ export default function AppLayout({
   );
 }
 
-function Navbar({ user }: { user: User | null }) {
+function Navbar({ user, isHome }: { user: User | null; isHome: boolean }) {
   const { theme, toggleTheme } = useTheme();
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [scrollState, setScrollState] = useState(false);
+
+  // If not on the home page, ALWAYS show the "scrolled" styling
+  const isScrolled = !isHome || scrollState;
 
   useEffect(() => {
+    if (!isHome) return; // No need to listen to scroll if not on home
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 800);
+      setScrollState(window.scrollY > 800);
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -119,7 +124,7 @@ function Navbar({ user }: { user: User | null }) {
                 transition-all duration-200
                 ${
                   !isScrolled
-                    ? "bg-white/20 hover:bg-white/30 text-white shadow-none"
+                    ? "bg-purple-600 hover:bg-purple-700 text-white shadow-none"
                     : theme === "dark"
                       ? "bg-purple-600 hover:bg-purple-700 text-white shadow-[0_0_16px_rgba(147,51,234,0.4)] hover:shadow-[0_0_24px_rgba(147,51,234,0.6)]"
                       : "bg-purple-600 hover:bg-purple-700 text-white shadow-[0_0_16px_rgba(147,51,234,0.4)] hover:shadow-[0_0_24px_rgba(147,51,234,0.6)]"

@@ -30,7 +30,8 @@ const nanum = Nanum_Brush_Script({
 });
 
 // --- 2. MAIN COMPONENT ---
-const INITIAL_PROMPT = "Where legends are written... Unfold your imagination.";
+const INITIAL_PROMPT =
+  "The detective enters the room... -> El detective entra en la habitación...";
 
 export default function SplitHero() {
   // 3D Tilt Logic
@@ -72,10 +73,10 @@ export default function SplitHero() {
     try {
       await new Promise((r) => setTimeout(r, 1500));
       const randomPhrases = [
-        "The old library whispered secrets only the brave could hear...",
-        "In a kingdom made of glass, a single stone changed everything...",
-        "The stars aligned to form a map that led to no known land...",
-        "She opened the book, and the room filled with the smell of the sea...",
+        "The sun rises over the city... -> Le soleil se lève sur la ville...",
+        "She found a mysterious letter... -> Sie fand einen mysteriösen Brief...",
+        "They traveled across the ocean... -> Eles viajaram pelo oceano...",
+        "The knight drew his sword... -> Il cavaliere sguainò la spada...",
       ];
       const newText =
         randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
@@ -153,16 +154,16 @@ export default function SplitHero() {
           raysOrigin="top-center"
           raysColor="#9333ea"
           raysSpeed={0.8}
-          lightSpread={1.8}
-          rayLength={2.5}
+          lightSpread={2.5}
+          rayLength={4}
           pulsating={true}
-          fadeDistance={1.2}
-          saturation={1.3}
+          fadeDistance={2}
+          saturation={2.4}
           followMouse={true}
-          mouseInfluence={0.15}
+          mouseInfluence={0.1}
           noiseAmount={0.05}
           distortion={0.1}
-          className="w-full h-full opacity-70"
+          className="w-full h-full opacity-75"
         />
       </div>
 
@@ -235,8 +236,8 @@ export default function SplitHero() {
             transition={{ duration: 0.8 }}
             className="text-5xl md:text-7xl font-extrabold text-white mb-6 tracking-tight leading-tight relative z-10"
           >
-            Turn your <span className="text-gradient">imagination</span> into
-            living stories
+            Shape the <span className="text-gradient">story</span>. Master the
+            language.
           </motion.h1>
 
           <motion.p
@@ -245,8 +246,9 @@ export default function SplitHero() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-xl text-[#a1a1b5] mb-10 leading-relaxed font-light relative z-10"
           >
-            Create worlds that teach, inspire, and entertain — where every story
-            you imagine becomes an unforgettable learning journey
+            Ditch the boring flashcards. Choose your target language, pick a
+            genre, and learn naturally by guiding the plot of interactive AI
+            stories tailored to your exact level.
           </motion.p>
 
           <motion.div
@@ -260,13 +262,13 @@ export default function SplitHero() {
               className="px-8 py-4 bg-[#4e45e3] hover:bg-[#3d36b8] text-white rounded-full text-lg font-medium flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(78,69,227,0.3)] hover:shadow-[0_0_30px_rgba(78,69,227,0.5)]"
             >
               <Sparkles className="w-5 h-5" />
-              Begin Your Story
+              Start Your First Story
             </Link>
             <Link
               href="#features"
               className="px-8 py-4 border border-[#a1a1b5]/30 hover:bg-white/5 text-[#e0e0e0] rounded-full text-lg font-medium flex items-center justify-center transition-all"
             >
-              How It Works
+              See How It Works
             </Link>
           </motion.div>
         </div>

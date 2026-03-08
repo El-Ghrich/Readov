@@ -15,7 +15,7 @@ import {
 import StoryChoices from "@/components/StoryChoices";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { saveVocabulary } from "@/app/actions/vocabulary";
+import { saveVocabulary } from "@/lib/actions";
 
 function VocabularyPill({
   word,
@@ -49,7 +49,7 @@ function VocabularyPill({
   };
 
   return (
-    <div className="group relative flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#1e1e2e] border border-gray-200 dark:border-white/10 rounded-full text-sm shadow-sm hover:border-purple-300 dark:hover:border-purple-700 transition-colors">
+    <div className="group relative flex items-center gap-1.5 px-3 py-1.5 bg-card border border-gray-200 dark:border-white/10 rounded-full text-sm shadow-sm hover:border-purple-300 dark:hover:border-purple-700 transition-colors">
       <span className="font-medium text-gray-900 dark:text-gray-100">
         {word}
       </span>
@@ -139,14 +139,14 @@ export function StoryPartItem({
           </div>
           <button
             onClick={onBranch}
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-purple-100 text-purple-600 rounded flex items-center gap-1 text-xs font-bold"
+            className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 dark:hover:bg-purple-600/20 hover:bg-purple-100 text-purple-600 rounded flex items-center gap-1 text-xs font-bold"
           >
             <GitFork className="w-3.5 h-3.5" /> Branch
           </button>
         </div>
 
         {/* Story Text */}
-        <div className="prose prose-lg dark:prose-invert max-w-none leading-relaxed text-gray-800 dark:text-gray-200">
+        <div className="prose prose-lg dark:prose-invert max-w-none leading-relaxed text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
           {part.content}
         </div>
 

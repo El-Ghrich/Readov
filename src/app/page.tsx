@@ -8,7 +8,7 @@ import CTASection from "@/components/CTASection";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background cursor-none custom-cursor-zone">
+    <div className="min-h-screen w-full bg-background cursor-none custom-cursor-zone">
       <QuillCursor />
       {/* Hero Section */}
       <SplitHero />

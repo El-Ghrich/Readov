@@ -9,7 +9,6 @@ import {
   History,
   List,
   Edit,
-  HelpCircle,
   Image as ImageIcon,
   SplitSquareHorizontal,
   CreditCard,
@@ -34,11 +33,25 @@ import { useSidebar } from "@/context/SidebarContext";
 
 export default function Sidebar({ user }: { user: User | null }) {
   const { theme, toggleTheme } = useTheme();
-  const { isCollapsed, toggleCollapse } = useSidebar();
+  const { isCollapsed, toggleCollapse, isMounted } = useSidebar();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  // Handle screen resize to detect mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Effective collapse state — never collapse on mobile
+  const effectiveCollapsed = isMounted && isCollapsed && !isMobile;
 
   // Close profile menu on click outside
   useEffect(() => {
@@ -69,28 +82,30 @@ export default function Sidebar({ user }: { user: User | null }) {
       {/* Mobile Menu Button - Adaptive Background */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white/80 dark:bg-[#0d0c1d]/80 backdrop-blur-lg border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white shadow-sm"
+        className={cn(
+          "md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white/80 dark:bg-background/80 backdrop-blur-lg border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white shadow-sm transition-opacity",
+          isOpen && "opacity-0 pointer-events-none", // Hide when sidebar is open
+        )}
       >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        <Menu className="w-6 h-6" />
       </button>
 
       {/* Sidebar Container */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out pt-6 flex flex-col",
-          theme === "light"
-            ? "bg-white border-r border-gray-200"
-            : "bg-[#0d0c1d] border-r border-[#2d2d45]",
+          "sidebar-panel fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out pt-6 flex flex-col",
+          "bg-white dark:bg-background border-r border-gray-200 dark:border-border",
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-          isCollapsed ? "md:w-20" : "md:w-64",
-          "w-64", // Mobile width always 64
+          "w-64 md:w-auto", // Mobile width constant, desktop width from CSS
         )}
       >
         {/* Logo Area & Toggle */}
         <div
           className={cn(
             "mb-8 flex items-center transition-all duration-300 relative",
-            isCollapsed ? "justify-center px-0" : "px-6 justify-between",
+            !effectiveCollapsed
+              ? "px-6 justify-between"
+              : "justify-center px-0",
           )}
         >
           <Link
@@ -100,23 +115,31 @@ export default function Sidebar({ user }: { user: User | null }) {
             <div
               className={cn(
                 "transition-all duration-300 flex items-center justify-center",
-                isCollapsed ? "w-10 h-10" : "w-auto",
+                !effectiveCollapsed ? "w-auto" : "w-10 h-10",
               )}
             >
+              {/* Light Mode Logo */}
               <img
                 src={
-                  isCollapsed
-                    ? theme === "light"
-                      ? "/Favicon-purple.png"
-                      : "/Favicon-white.png"
-                    : theme === "light"
-                      ? "/logo_purple.png"
-                      : "/logo_white.png"
+                  effectiveCollapsed
+                    ? "/Favicon-purple.png"
+                    : "/logo_purple.png"
                 }
                 alt="Readov"
                 className={cn(
-                  "object-contain transition-all",
-                  isCollapsed ? "h-8 w-8" : "h-8 md:h-9",
+                  "object-contain transition-all dark:hidden",
+                  !effectiveCollapsed ? "h-8 md:h-9" : "h-8 w-8",
+                )}
+              />
+              {/* Dark Mode Logo */}
+              <img
+                src={
+                  effectiveCollapsed ? "/Favicon-white.png" : "/logo_white.png"
+                }
+                alt="Readov"
+                className={cn(
+                  "object-contain transition-all hidden dark:block",
+                  !effectiveCollapsed ? "h-8 md:h-9" : "h-8 w-8",
                 )}
               />
             </div>
@@ -127,17 +150,25 @@ export default function Sidebar({ user }: { user: User | null }) {
             onClick={toggleCollapse}
             className={cn(
               "hidden md:flex p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors absolute",
-              isCollapsed
-                ? "-right-3 top-10 bg-white dark:bg-[#1a1a2e] border border-gray-200 dark:border-[#2d2d45] shadow-sm z-50"
-                : "relative ml-auto",
+              !effectiveCollapsed
+                ? "relative ml-auto"
+                : "-right-3 top-10 bg-white dark:bg-card border border-gray-200 dark:border-border shadow-sm z-50",
             )}
-            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            title={effectiveCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
-            {isCollapsed ? (
+            {effectiveCollapsed ? (
               <ChevronRight className="w-4 h-4" />
             ) : (
               <PanelLeftClose className="w-5 h-5" />
             )}
+          </button>
+
+          {/* Mobile Close Button */}
+          <button
+            onClick={() => setIsOpen(false)}
+            className="md:hidden p-2 -mr-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+          >
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -150,12 +181,12 @@ export default function Sidebar({ user }: { user: User | null }) {
               "flex items-center justify-center gap-2 w-full p-3 mb-6 rounded-xl text-white font-bold transition-all overflow-hidden",
               "bg-[#4e45e3] hover:bg-[#433bc0] shadow-[0_4px_12px_rgba(78,69,227,0.3)]",
               "hover:scale-[1.02] active:scale-95",
-              isCollapsed ? "aspect-square p-0" : "",
+              effectiveCollapsed ? "aspect-square p-0" : "",
             )}
             title="New Story"
           >
-            <Plus className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && (
+            <Plus className="w-5 h-5 shrink-0" />
+            {!effectiveCollapsed && (
               <span className="whitespace-nowrap">New Story</span>
             )}
           </Link>
@@ -174,29 +205,21 @@ export default function Sidebar({ user }: { user: User | null }) {
                   className={cn(
                     "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group font-medium overflow-hidden",
                     isActive
-                      ? theme === "light"
-                        ? "bg-[#4e45e3]/10 text-[#4e45e3]"
-                        : "bg-[#6d7de8]/10 text-[#6d7de8]"
-                      : theme === "light"
-                        ? "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                        : "text-[#a1a1b5] hover:bg-white/10 hover:text-white",
-                    isCollapsed ? "justify-center" : "",
+                      ? "bg-[#4e45e3]/10 dark:bg-[#6d7de8]/10 text-[#4e45e3] dark:text-[#6d7de8]"
+                      : "text-gray-600 dark:text-[#a1a1b5] hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white",
+                    effectiveCollapsed ? "justify-center" : "",
                   )}
                   title={item.name}
                 >
                   <Icon
                     className={cn(
-                      "w-5 h-5 transition-colors flex-shrink-0",
+                      "w-5 h-5 transition-colors shrink-0",
                       isActive
-                        ? theme === "light"
-                          ? "text-[#4e45e3]"
-                          : "text-[#6d7de8]"
-                        : theme === "light"
-                          ? "text-gray-500 group-hover:text-gray-900"
-                          : "text-[#64647a] group-hover:text-white",
+                        ? "text-[#4e45e3] dark:text-[#6d7de8]"
+                        : "text-gray-500 dark:text-[#64647a] group-hover:text-gray-900 dark:group-hover:text-white",
                     )}
                   />
-                  {!isCollapsed && (
+                  {!effectiveCollapsed && (
                     <span className="whitespace-nowrap transition-opacity duration-200">
                       {item.name}
                     </span>
@@ -212,36 +235,24 @@ export default function Sidebar({ user }: { user: User | null }) {
               onClick={toggleTheme}
               className={cn(
                 "flex items-center gap-3 px-3 py-3 w-full rounded-xl transition-all duration-200 font-medium overflow-hidden",
-                theme === "light"
-                  ? "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  : "text-[#a1a1b5] hover:bg-white/10 hover:text-white",
-                isCollapsed ? "justify-center" : "",
+                "text-gray-600 dark:text-[#a1a1b5] hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white",
+                effectiveCollapsed ? "justify-center" : "",
               )}
-              title={
-                theme === "dark"
-                  ? "Switch to Light Mode"
-                  : "Switch to Dark Mode"
-              }
             >
-              {theme === "dark" ? (
-                <>
-                  <Sun className="w-5 h-5 text-amber-400 flex-shrink-0" />
-                  {!isCollapsed && (
-                    <span className="font-medium whitespace-nowrap">
+              <div className="flex items-center gap-3">
+                <Sun className="w-5 h-5 text-amber-400 shrink-0 hidden dark:block" />
+                <Moon className="w-5 h-5 text-[#4e45e3] shrink-0 dark:hidden" />
+                {!effectiveCollapsed && (
+                  <>
+                    <span className="font-medium whitespace-nowrap hidden dark:inline">
                       Light Mode
                     </span>
-                  )}
-                </>
-              ) : (
-                <>
-                  <Moon className="w-5 h-5 text-[#4e45e3] flex-shrink-0" />
-                  {!isCollapsed && (
-                    <span className="font-medium whitespace-nowrap">
+                    <span className="font-medium whitespace-nowrap dark:hidden">
                       Dark Mode
                     </span>
-                  )}
-                </>
-              )}
+                  </>
+                )}
+              </div>
             </button>
           </div>
         </div>
@@ -254,39 +265,33 @@ export default function Sidebar({ user }: { user: User | null }) {
           {user ? (
             <div className="relative">
               {/* Popover Menu */}
-              {showProfileMenu && !isCollapsed && (
+              {showProfileMenu && !effectiveCollapsed && (
                 <div
                   className={cn(
-                    "absolute bottom-full left-0 right-0 mb-3 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200 z-50 border",
-                    theme === "light"
-                      ? "bg-white border-gray-100"
-                      : "bg-[#1a1a2e] border-[#2d2d45]",
+                    "absolute bottom-full left-0 right-0 mb-3 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200 z-50 border",
+                    "bg-white/95 dark:bg-card/95 backdrop-blur-xl border-gray-100 dark:border-white/10",
                   )}
                 >
                   <div className="p-1 space-y-0.5">
                     <Link
-                      href="/account/profile"
+                      href="/profile"
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-colors",
-                        theme === "light"
-                          ? "text-gray-700 hover:bg-gray-100 hover:text-black"
-                          : "text-[#a1a1b5] hover:bg-white/10 hover:text-white",
+                        "text-gray-700 dark:text-[#a1a1b5] hover:bg-gray-100 dark:hover:bg-white/10 hover:text-black dark:hover:text-white",
                       )}
                     >
                       <UserIcon className="w-4 h-4" /> Profile
                     </Link>
                     <Link
-                      href="/account/settings"
+                      href="/settings"
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-colors",
-                        theme === "light"
-                          ? "text-gray-700 hover:bg-gray-100 hover:text-black"
-                          : "text-[#a1a1b5] hover:bg-white/10 hover:text-white",
+                        "text-gray-700 dark:text-[#a1a1b5] hover:bg-gray-100 dark:hover:bg-white/10 hover:text-black dark:hover:text-white",
                       )}
                     >
                       <Settings className="w-4 h-4" /> Settings
                     </Link>
-                    <div className="h-px bg-gray-100 dark:bg-[#2d2d45] my-1" />
+                    <div className="h-px bg-gray-100 dark:bg-border my-1" />
                     <form action="/auth/signout" method="post">
                       <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors text-left font-medium">
                         <LogOut className="w-4 h-4" /> Log Out
@@ -297,13 +302,11 @@ export default function Sidebar({ user }: { user: User | null }) {
               )}
 
               {/* Popover Menu (Collapsed Mode) - Positioned differently */}
-              {showProfileMenu && isCollapsed && (
+              {showProfileMenu && effectiveCollapsed && (
                 <div
                   className={cn(
-                    "absolute bottom-full left-10 ml-6 mb-[-10px] w-48 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-left-2 duration-200 z-50 border",
-                    theme === "light"
-                      ? "bg-white border-gray-100"
-                      : "bg-[#1a1a2e] border-[#2d2d45]",
+                    "absolute bottom-full left-10 ml-6 mb-[-10px] w-52 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in slide-in-from-left-2 duration-200 z-50 border",
+                    "bg-white/95 dark:bg-card/95 backdrop-blur-xl border-gray-100 dark:border-white/10",
                   )}
                 >
                   <div className="p-1 space-y-0.5">
@@ -313,7 +316,7 @@ export default function Sidebar({ user }: { user: User | null }) {
                       </p>
                     </div>
                     <Link
-                      href="/account/profile"
+                      href="/profile"
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-colors",
                         theme === "light"
@@ -323,7 +326,17 @@ export default function Sidebar({ user }: { user: User | null }) {
                     >
                       <UserIcon className="w-4 h-4" /> Profile
                     </Link>
-                    {/* ... other links same as above ... */}
+                    <Link
+                      href="/settings"
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-colors",
+                        theme === "light"
+                          ? "text-gray-700 hover:bg-gray-100 hover:text-black"
+                          : "text-[#a1a1b5] hover:bg-white/10 hover:text-white",
+                      )}
+                    >
+                      <Settings className="w-4 h-4" /> Settings
+                    </Link>
                     <form action="/auth/signout" method="post">
                       <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors text-left font-medium">
                         <LogOut className="w-4 h-4" /> Log Out
@@ -338,18 +351,16 @@ export default function Sidebar({ user }: { user: User | null }) {
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className={cn(
                   "flex items-center gap-3 w-full px-2 py-2.5 transition-all rounded-xl border border-transparent overflow-hidden",
-                  theme === "light"
-                    ? "hover:bg-gray-100 hover:border-gray-200 text-gray-700"
-                    : "hover:bg-white/5 hover:border-white/5 text-gray-200",
-                  isCollapsed ? "justify-center" : "",
+                  "hover:bg-gray-100 dark:hover:bg-white/5 hover:border-gray-200 dark:hover:border-white/5 text-gray-700 dark:text-gray-200",
+                  effectiveCollapsed ? "justify-center" : "",
                 )}
               >
-                <div className="w-9 h-9 flex-shrink-0 rounded-full bg-[#4e45e3]/10 dark:bg-[#6d7de8]/20 flex items-center justify-center border border-[#4e45e3]/20 dark:border-[#6d7de8]/30 text-[#4e45e3] dark:text-[#6d7de8]">
+                <div className="w-9 h-9 shrink-0 rounded-full bg-[#4e45e3]/10 dark:bg-[#6d7de8]/20 flex items-center justify-center border border-[#4e45e3]/20 dark:border-[#6d7de8]/30 text-[#4e45e3] dark:text-[#6d7de8]">
                   <span className="text-sm font-bold">
                     {user.email?.[0].toUpperCase()}
                   </span>
                 </div>
-                {!isCollapsed && (
+                {!effectiveCollapsed && (
                   <>
                     <div className="flex-1 min-w-0 text-left">
                       <p className="text-sm font-semibold truncate text-gray-900 dark:text-white">
@@ -366,7 +377,7 @@ export default function Sidebar({ user }: { user: User | null }) {
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              {isCollapsed ? (
+              {effectiveCollapsed ? (
                 <Link
                   href="/login"
                   className="flex items-center justify-center w-full h-10 rounded-lg bg-[#4e45e3] text-white hover:opacity-90"

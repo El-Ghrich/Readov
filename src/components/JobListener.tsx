@@ -121,7 +121,7 @@ export default function JobListener({ jobId, onComplete }: JobListenerProps) {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 space-y-4 rounded-xl bg-white/10 dark:bg-[#1e1e2e]/50 backdrop-blur-md border border-white/10 max-w-md w-full mx-auto shadow-2xl">
+    <div className="flex flex-col items-center justify-center p-8 space-y-4 rounded-xl bg-white/10 dark:bg-card/50 backdrop-blur-md border border-white/10 max-w-md w-full mx-auto shadow-2xl">
       {isTakingLong ? (
         <div className="text-center space-y-2 animate-in fade-in slide-in-from-bottom-2">
           <p className="text-amber-400 font-medium">

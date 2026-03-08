@@ -33,6 +33,7 @@ interface ContinuationParams {
 
 interface StoryResponse {
   content: string;
+  title?: string;
   options: string[];
   narrative_context: any;
   correction?: string | null;
@@ -86,7 +87,7 @@ RULES:
    - If a character's status changes (e.g., becomes angry), UPDATE it in the returned JSON.
    - If the location changes, UPDATE 'current_location'.
 3. LENGTH: Write specifically between ${levelConfig.wordCount} words.
-4. STRUCTURE: ${levelConfig.structure}.
+4. STRUCTURE: ${levelConfig.structure}. EXACT FORMATTING: Use double line breaks (\\n\\n) to separate paragraphs. Never output a single solid block of text.
 5. LANGUAGE & STYLE: ${levelConfig.style}.
 6. LEVEL: ${params.level_label || "Intermediate"}. ADJUST STRICTLY TO THIS LEVEL.
 7. Content: Continue the plot logically.
@@ -174,6 +175,7 @@ ${
       const parsed = JSON.parse(jsonString);
       return {
         content: parsed.content || rawText,
+        title: parsed.title || undefined,
         options: parsed.options || [],
         narrative_context: parsed.narrative_context || {},
         correction: parsed.correction || null,
@@ -189,51 +191,51 @@ ${
     switch (levelLabel) {
       case "A1":
         return {
-          wordCount: "100-150",
-          structure: "1 simple paragraph",
+          wordCount: "40-70",
+          structure: "2 very short paragraphs",
           style:
             "Very simple sentences. High-frequency vocabulary (top 500 words). Avoid idioms. Focus on concrete actions. Present tense preference.",
         };
       case "A2":
         return {
-          wordCount: "150-200",
-          structure: "1-2 short paragraphs",
+          wordCount: "70-110",
+          structure: "2 short paragraphs",
           style:
             "Compound sentences (and, but, because). Basic descriptive language. Everyday topics. Simple past tones.",
         };
       case "B1":
         return {
-          wordCount: "200-250",
+          wordCount: "110-150",
           structure: "2 paragraphs",
           style:
             "Connected text. Mix of simple and complex sentences. Clear descriptions of events and feelings.",
         };
       case "B2":
         return {
-          wordCount: "250-300",
-          structure: "2-3 paragraphs",
+          wordCount: "150-200",
+          structure: "2 to 3 distinct paragraphs",
           style:
             "Complex arguments/narratives. Varied sentence structures. Specific vocabulary. Abstract topics.",
         };
       case "C1":
         return {
-          wordCount: "300-350",
-          structure: "3 paragraphs",
+          wordCount: "200-250",
+          structure: "3 distinct paragraphs",
           style:
             "Long, complex, and detailed. Flexible use of language. Idiomatic expressions. Subtleties.",
         };
       case "C2":
         return {
-          wordCount: "350-400",
-          structure: "3-4 paragraphs",
+          wordCount: "250-300",
+          structure: "3 to 4 distinct paragraphs",
           style:
             "Sophisticated, literary, and precise. Nuanced meaning. Rich vocabulary. Complete fluency.",
         };
       default:
         // Default to a middle ground if undefined
         return {
-          wordCount: "200-250",
-          structure: "2 engaging paragraphs",
+          wordCount: "150-200",
+          structure: "2 to 3 paragraphs",
           style: "Standard storytelling flow. Moderate vocabulary.",
         };
     }
@@ -249,6 +251,7 @@ ${
 RULES:
 1. OUTPUT FORMAT: STRICT JSON.
    Format: { 
+     "title": "A Creative and Intriguing Story Title",
      "content": "Story text...", 
      "options": ["Choice 1", "Choice 2", "Choice 3"],
      "narrative_context": { 
@@ -258,16 +261,17 @@ RULES:
      },
      "vocabulary_highlight": { "word": "definition" } (Object with 2-6 sophisticated words${nativeLangInfo})
    }
-2. LENGTH: Write specifically between ${levelConfig.wordCount} words.
-3. STRUCTURE: ${levelConfig.structure}.
-4. LANGUAGE & STYLE: ${levelConfig.style}.
-5. LEVEL: ${params.level_label || "Intermediate"}. ADJUST STRICTLY TO THIS LEVEL.
-6. Content: START the story immediately with action or dialogue.
-7. Language: Write ONLY in ${params.language || "English"}.
-8. Options: Provide 3 short, intriguing plot directions.
-${params.goal ? `9. Goal: The characters should aim for: '${params.goal}'` : ""}
-${params.lesson ? `10. Theme: Incorporate the theme: '${params.lesson}'` : ""}
-${params.premise ? `11. PREMISE: Use this starting concept: '${params.premise}'` : ""}
+2. TITLE: Create a compelling title for the story based on the genre and premise (max 6 words).
+3. LENGTH: Write specifically between ${levelConfig.wordCount} words.
+4. STRUCTURE: ${levelConfig.structure}. EXACT FORMATTING: Use double line breaks (\\n\\n) to separate paragraphs. Never output a single solid block of text.
+5. LANGUAGE & STYLE: ${levelConfig.style}.
+6. LEVEL: ${params.level_label || "Intermediate"}. ADJUST STRICTLY TO THIS LEVEL.
+7. Content: START the story immediately with action or dialogue.
+8. Language: Write ONLY in ${params.language || "English"}.
+9. Options: Provide 3 short, intriguing plot directions.
+${params.goal ? `10. Goal: The characters should aim for: '${params.goal}'` : ""}
+${params.lesson ? `11. Theme: Incorporate the theme: '${params.lesson}'` : ""}
+${params.premise ? `12. PREMISE: Use this starting concept: '${params.premise}'` : ""}
 `;
   }
 
@@ -305,6 +309,40 @@ Deno.serve(async (req) => {
     supabase = createClient(supabaseUrl, supabaseKey);
     const aiProvider = new GeminiProvider(apiKey);
 
+    // --- RATE LIMIT CHECK ---
+    if (job.user_id) {
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+
+      const { count, error: countError } = await supabase
+        .from("story_parts")
+        .select("id, stories!inner(user_id)", { count: "exact", head: true })
+        .eq("stories.user_id", job.user_id)
+        .gte("created_at", today.toISOString());
+
+      if (countError) {
+        console.error("Rate limit check error:", countError);
+      } else if (count !== null && count >= 10) {
+        const rateLimitMsg =
+          "Daily limit reached. Come back tomorrow to continue your adventure!";
+        console.log(
+          `Rate limit hit for user ${job.user_id}: ${count} parts today`,
+        );
+
+        if (jobId !== "unknown") {
+          await supabase
+            .from("jobs")
+            .update({ status: "failed", error: rateLimitMsg })
+            .eq("id", jobId);
+        }
+
+        return new Response(JSON.stringify({ error: rateLimitMsg }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429,
+        });
+      }
+    }
+
     // Update job to processing
     if (jobId !== "unknown") {
       await supabase
@@ -337,24 +375,35 @@ Deno.serve(async (req) => {
         level_label,
       } = job.params || {};
 
-      const { content, options, vocabulary_highlight, narrative_context } =
-        await aiProvider.generateStoryStart({
-          genre,
-          language,
-          goal,
-          lesson,
-          premise,
-          level,
-          level_label,
-          native_language: userNativeLanguage,
-        });
+      const {
+        content,
+        title,
+        options,
+        vocabulary_highlight,
+        narrative_context,
+      } = await aiProvider.generateStoryStart({
+        genre,
+        language,
+        goal,
+        lesson,
+        premise,
+        level,
+        level_label,
+        native_language: userNativeLanguage,
+      });
 
-      // 1. Create Story
+      // 1. Create Story with AI-generated title
+      const storyTitle =
+        title ||
+        (genre
+          ? `${genre.charAt(0).toUpperCase() + genre.slice(1)} Adventure`
+          : "Your Story");
+
       const { data: story, error: storyError } = await supabase
         .from("stories")
         .insert({
           user_id: job.user_id,
-          title: "Your Story",
+          title: storyTitle,
           genre,
           language,
           goal,

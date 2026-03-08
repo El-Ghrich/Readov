@@ -4,6 +4,11 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { GravityStarsBackground } from "./animate-ui/components/backgrounds/gravity-stars";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { InputError } from "@/components/ui/InputError";
+import { useToast } from "@/context/ToastContext";
 
 interface ComingSoonProps {
   title?: string;
@@ -25,6 +30,31 @@ export default function ComingSoon({
     minutes: 0,
     seconds: 0,
   });
+
+  const { showToast } = useToast();
+
+  const newsletterSchema = z.object({
+    email: z.string().email("Please enter a valid email address"),
+  });
+
+  type NewsletterFormValues = z.infer<typeof newsletterSchema>;
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<NewsletterFormValues>({
+    resolver: zodResolver(newsletterSchema),
+  });
+
+  const onSubmit = async (data: NewsletterFormValues) => {
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    console.log("Subscribed with email:", data.email);
+    showToast("Thanks for subscribing!", "success");
+    reset();
+  };
 
   // Countdown timer effect
   useEffect(() => {
@@ -174,21 +204,33 @@ export default function ComingSoon({
 
         {/* Newsletter Signup */}
         <div className="max-w-md mx-auto">
-          <div className="relative group">
+          <form onSubmit={handleSubmit(onSubmit)} className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
-            <div className="relative flex items-center bg-white dark:bg-[#1a1a2e] rounded-lg shadow-xl">
+            <div
+              className={`relative flex items-center bg-white dark:bg-card rounded-lg shadow-xl border ${errors.email ? "border-red-500" : "border-transparent"}`}
+            >
               <Mail className="absolute left-4 w-5 h-5 text-gray-400" />
               <input
+                {...register("email")}
                 type="email"
                 placeholder="Get notified when we launch"
                 className="w-full pl-12 pr-4 py-4 bg-transparent rounded-lg focus:outline-none text-gray-900 dark:text-white placeholder-gray-400"
               />
-              <button className="m-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2">
-                <Send className="w-4 h-4" />
-                <span className="hidden sm:inline">Notify Me</span>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="m-2 px-5 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2 disabled:opacity-50"
+              >
+                <Send className="w-5 h-5" />
+                <span className="hidden md:inline min-w-max ">
+                  {isSubmitting ? "Sending..." : "Notify Me"}
+                </span>
               </button>
             </div>
-          </div>
+            <div className="mt-2 text-left">
+              <InputError message={errors.email?.message} />
+            </div>
+          </form>
         </div>
 
         {/* Back Link */}

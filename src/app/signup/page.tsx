@@ -14,18 +14,16 @@ import {
   Globe,
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { signupSchema } from "@/lib/validations";
+import { InputError } from "@/components/ui/InputError";
+import { CustomSelect } from "@/components/ui/CustomSelect";
+
+type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    dateOfBirth: "",
-    nativeLanguage: "English",
-    password: "",
-    confirmPassword: "",
-  });
-
   const LANGUAGES = [
     { value: "English", label: "English" },
     { value: "Spanish", label: "Español" },
@@ -45,44 +43,38 @@ export default function SignupPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      dateOfBirth: "",
+      nativeLanguage: "English",
+    },
+  });
 
-  const validate = () => {
-    if (formData.password !== formData.confirmPassword) {
-      return "Passwords do not match";
-    }
-    if (formData.password.length < 8) {
-      return "Password must be at least 8 characters";
-    }
-    return null;
-  };
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: SignupFormValues) => {
     setLoading(true);
     setError(null);
 
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
-      setLoading(false);
-      return;
-    }
-
     try {
-      const { data, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
+      const { error: authError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
         options: {
           data: {
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            date_of_birth: formData.dateOfBirth,
-            native_language: formData.nativeLanguage,
+            first_name: data.firstName,
+            last_name: data.lastName,
+            date_of_birth: data.dateOfBirth,
+            native_language: data.nativeLanguage,
           },
         },
       });
@@ -144,118 +136,149 @@ export default function SignupPage() {
             </div>
           )}
 
-          <form className="mt-8 space-y-6" onSubmit={handleSignup}>
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="relative group">
+                <div className="space-y-1 relative group">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    </div>
+                    <input
+                      id="firstName"
+                      type="text"
+                      {...register("firstName")}
+                      placeholder="First Name"
+                      className={`block w-full pl-10 pr-3 py-3 border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 transition-all hover:bg-background/80 ${
+                        errors.firstName
+                          ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                          : "border-border focus:border-primary focus:ring-primary"
+                      }`}
+                      aria-invalid={!!errors.firstName}
+                    />
+                  </div>
+                  <InputError message={errors.firstName?.message} />
+                </div>
+                <div className="space-y-1 relative group">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    </div>
+                    <input
+                      id="lastName"
+                      type="text"
+                      {...register("lastName")}
+                      placeholder="Last Name"
+                      className={`block w-full pl-10 pr-3 py-3 border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 transition-all hover:bg-background/80 ${
+                        errors.lastName
+                          ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                          : "border-border focus:border-primary focus:ring-primary"
+                      }`}
+                      aria-invalid={!!errors.lastName}
+                    />
+                  </div>
+                  <InputError message={errors.lastName?.message} />
+                </div>
+              </div>
+
+              <div className="space-y-1 relative group">
+                <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Mail className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                   </div>
                   <input
-                    name="firstName"
-                    type="text"
-                    required
-                    placeholder="First Name"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all hover:bg-background/80"
+                    id="email"
+                    type="email"
+                    {...register("email")}
+                    placeholder="Email address"
+                    className={`block w-full pl-10 pr-3 py-3 border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 transition-all hover:bg-background/80 ${
+                      errors.email
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                        : "border-border focus:border-primary focus:ring-primary"
+                    }`}
+                    aria-invalid={!!errors.email}
                   />
                 </div>
-                <div className="relative group">
+                <InputError message={errors.email?.message} />
+              </div>
+
+              <div className="space-y-1 relative group">
+                <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Calendar className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                   </div>
                   <input
-                    name="lastName"
-                    type="text"
-                    required
-                    placeholder="Last Name"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all hover:bg-background/80"
+                    id="dateOfBirth"
+                    type="date"
+                    {...register("dateOfBirth")}
+                    className={`block w-full pl-10 pr-3 py-3 border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 transition-all hover:bg-background/80 ${
+                      errors.dateOfBirth
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                        : "border-border focus:border-primary focus:ring-primary"
+                    }`}
+                    aria-invalid={!!errors.dateOfBirth}
                   />
                 </div>
+                <InputError message={errors.dateOfBirth?.message} />
               </div>
 
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                </div>
-                <input
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="Email address"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all hover:bg-background/80"
-                />
-              </div>
-
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Calendar className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                </div>
-                <input
-                  name="dateOfBirth"
-                  type="date"
-                  required
-                  value={formData.dateOfBirth}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all hover:bg-background/80"
-                />
-              </div>
-
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Globe className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                </div>
-                <select
+              <div className="space-y-1 relative group">
+                <Controller
                   name="nativeLanguage"
-                  value={formData.nativeLanguage}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all hover:bg-background/80 appearance-none"
-                >
-                  {LANGUAGES.map((lang) => (
-                    <option
-                      key={lang.value}
-                      value={lang.value}
-                      className="bg-background text-foreground"
-                    >
-                      {lang.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                </div>
-                <input
-                  name="password"
-                  type="password"
-                  required
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all hover:bg-background/80"
+                  control={control}
+                  render={({ field }) => (
+                    <CustomSelect
+                      options={LANGUAGES}
+                      value={field.value}
+                      onChange={field.onChange}
+                      error={errors.nativeLanguage?.message}
+                      placeholder="Select Native Language"
+                      className="w-full"
+                    />
+                  )}
                 />
               </div>
 
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <div className="space-y-1 relative group">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  </div>
+                  <input
+                    id="password"
+                    type="password"
+                    {...register("password")}
+                    placeholder="Password"
+                    className={`block w-full pl-10 pr-3 py-3 border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 transition-all hover:bg-background/80 ${
+                      errors.password
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                        : "border-border focus:border-primary focus:ring-primary"
+                    }`}
+                    aria-invalid={!!errors.password}
+                  />
                 </div>
-                <input
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  placeholder="Confirm Password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all hover:bg-background/80"
-                />
+                <InputError message={errors.password?.message} />
+              </div>
+
+              <div className="space-y-1 relative group">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  </div>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    {...register("confirmPassword")}
+                    placeholder="Confirm Password"
+                    className={`block w-full pl-10 pr-3 py-3 border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 transition-all hover:bg-background/80 ${
+                      errors.confirmPassword
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                        : "border-border focus:border-primary focus:ring-primary"
+                    }`}
+                    aria-invalid={!!errors.confirmPassword}
+                  />
+                </div>
+                <InputError message={errors.confirmPassword?.message} />
               </div>
             </div>
 

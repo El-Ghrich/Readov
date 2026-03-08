@@ -50,7 +50,7 @@ export default function NotFound({ className }: NotFoundProps) {
 
           <button
             onClick={() => window.history.back()}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-[#1a1a2e] border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-[#252533] transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-card border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-[#252533] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Go Back

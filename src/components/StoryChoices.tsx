@@ -11,6 +11,8 @@ import {
   ChevronDown,
 } from "lucide-react";
 import SpotlightCard from "./SpotlightCard";
+import { z } from "zod";
+import { InputError } from "@/components/ui/InputError";
 
 interface StoryChoicesProps {
   choices: string[];
@@ -28,10 +30,17 @@ export default function StoryChoices({
   disabled = false,
 }: StoryChoicesProps) {
   const [customInput, setCustomInput] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [selectedChoiceIndex, setSelectedChoiceIndex] = useState<number | null>(
     null,
   );
   const [isOpen, setIsOpen] = useState(false);
+
+  // Schema for custom input
+  const customInputSchema = z
+    .string()
+    .min(3, "Input is too short (minimum 3 characters).")
+    .max(500, "Input is too long (maximum 500 characters).");
 
   // Auto-open if it's the active choice block
   useEffect(() => {
@@ -51,6 +60,15 @@ export default function StoryChoices({
   const handleCustomSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading || disabled || !customInput.trim()) return;
+
+    // Validate input
+    const validationResult = customInputSchema.safeParse(customInput);
+    if (!validationResult.success) {
+      setError(validationResult.error.issues[0].message);
+      return;
+    }
+
+    setError(null);
     onSelect(customInput, "custom", undefined);
   };
 
@@ -63,7 +81,7 @@ export default function StoryChoices({
           className={`flex items-center gap-2 px-6 py-2 rounded-full shadow-lg transition-all duration-300 z-10 font-medium text-sm group ${
             disabled
               ? "bg-gray-200 dark:bg-white/10 text-gray-500 cursor-default"
-              : "bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:shadow-xl hover:scale-105"
+              : "bg-linear-to-r from-purple-600 to-blue-600 text-white hover:shadow-xl hover:scale-105"
           }`}
         >
           <Sparkles
@@ -106,8 +124,8 @@ export default function StoryChoices({
                       badge:
                         "text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-500/10",
                       spotlight: "rgba(239, 68, 68, 0.15)", // Reduced opacity
-                      active: "!border-red-500/50 !bg-red-500/5", // Softer active
-                      hover: "hover:!border-red-500/30",
+                      active: "border-red-500/50! bg-red-500/5!", // Softer active
+                      hover: "hover:border-red-500/30!",
                       shadow: "shadow-[0_0_20px_rgba(239,68,68,0.1)]", // Softer shadow
                     },
                     {
@@ -115,8 +133,8 @@ export default function StoryChoices({
                       badge:
                         "text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/10",
                       spotlight: "rgba(245, 158, 11, 0.15)", // Reduced opacity
-                      active: "!border-amber-500/50 !bg-amber-500/5", // Softer active
-                      hover: "hover:!border-amber-500/30",
+                      active: "border-amber-500/50! bg-amber-500/5!", // Softer active
+                      hover: "hover:border-amber-500/30!",
                       shadow: "shadow-[0_0_20px_rgba(245,158,11,0.1)]", // Softer shadow
                     },
                     {
@@ -124,8 +142,8 @@ export default function StoryChoices({
                       badge:
                         "text-cyan-600 dark:text-cyan-400 bg-cyan-100 dark:bg-cyan-500/10",
                       spotlight: "rgba(6, 182, 212, 0.15)", // Reduced opacity
-                      active: "!border-cyan-500/50 !bg-cyan-500/5", // Softer active
-                      hover: "hover:!border-cyan-500/30",
+                      active: "border-cyan-500/50! bg-cyan-500/5!", // Softer active
+                      hover: "hover:border-cyan-500/30!",
                       shadow: "shadow-[0_0_20px_rgba(6,182,212,0.1)]", // Softer shadow
                     },
                   ];
@@ -142,12 +160,12 @@ export default function StoryChoices({
                                                     h-full flex flex-col justify-between p-6 rounded-3xl text-left backdrop-blur-md group shadow-sm transition-colors duration-300
                                                     ${
                                                       disabled
-                                                        ? "!bg-gray-100 dark:!bg-white/5 !border-gray-200 dark:!border-white/5"
+                                                        ? "bg-gray-100! dark:bg-white/5! border-gray-200! dark:border-white/5!"
                                                         : isLoading &&
                                                             selectedChoiceIndex ===
                                                               index
                                                           ? `${theme.active} ${theme.shadow}`
-                                                          : `!bg-white/80 dark:!bg-[#1e1e2e]/40 !border-gray-200 dark:!border-white/5 hover:!bg-white dark:hover:!bg-[#1e1e2e]/80 ${theme.hover} hover:shadow-xl`
+                                                          : `bg-white/80! dark:bg-card/40! border-gray-200! dark:border-white/5! hover:bg-white! dark:hover:bg-card/80! ${theme.hover} hover:shadow-xl`
                                                     }
                                                 `}
                         spotlightColor={
@@ -203,7 +221,7 @@ export default function StoryChoices({
                     <div className="w-full border-t border-gray-200 dark:border-white/10"></div>
                   </div>
                   <div className="relative flex justify-center text-xs uppercase tracking-widest">
-                    <span className="bg-gray-50 dark:bg-[#0a0a0a] px-4 text-gray-500 font-mono">
+                    <span className="bg-gray-50 dark:bg-background px-4 text-gray-500 font-mono">
                       Or write your own
                     </span>
                   </div>
@@ -214,15 +232,22 @@ export default function StoryChoices({
                   onSubmit={handleCustomSubmit}
                   className="relative group pb-4"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600/30 to-blue-600/30 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-out"></div>
+                  <div className="absolute inset-0 bg-linear-to-r from-purple-600/30 to-blue-600/30 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-out"></div>
                   <div className="relative flex gap-2">
                     <input
                       type="text"
                       value={customInput}
-                      onChange={(e) => setCustomInput(e.target.value)}
+                      onChange={(e) => {
+                        setCustomInput(e.target.value);
+                        if (error) setError(null);
+                      }}
                       placeholder="Describe what happens next..."
                       disabled={isLoading}
-                      className="w-full px-6 py-4 bg-white dark:bg-[#1e1e2e] border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-gray-900 dark:text-white placeholder-gray-400 shadow-sm transition-all"
+                      className={`w-full px-6 py-4 bg-white dark:bg-card border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-gray-900 dark:text-white placeholder-gray-400 shadow-sm transition-all ${
+                        error
+                          ? "border-red-500"
+                          : "border-gray-200 dark:border-white/10"
+                      }`}
                     />
                     <button
                       type="submit"
@@ -231,6 +256,9 @@ export default function StoryChoices({
                     >
                       Next <ArrowRight className="w-4 h-4" />
                     </button>
+                  </div>
+                  <div className="mt-2 text-left">
+                    <InputError message={error || undefined} />
                   </div>
                 </form>
               </>

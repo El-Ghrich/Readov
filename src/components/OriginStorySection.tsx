@@ -39,7 +39,7 @@ export default function OriginStorySection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
           {/* ─── LEFT COLUMN ─── */}
-          <div className="lg:col-span-5 relative lg:sticky lg:top-32 flex flex-col gap-10">
+          <div className="lg:col-span-5 relative lg:sticky lg:top-32  flex flex-col gap-10">
             {/* Headline */}
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-medium mb-6">
@@ -50,7 +50,7 @@ export default function OriginStorySection() {
                 <span className="text-white">Why we built</span>
                 <br />
                 <span className="bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
-                  ReadOV
+                  Readov
                 </span>
               </h2>
               <p className="text-lg text-gray-400 mt-6 max-w-sm leading-relaxed">

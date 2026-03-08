@@ -2,9 +2,18 @@
 
 import { useState, useEffect, use, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useSidebar } from "@/context/SidebarContext";
-import { Loader2, AlertTriangle, CheckCircle } from "lucide-react";
+import {
+  BookOpen,
+  AlertTriangle,
+  CheckCircle,
+  Share2,
+  Globe,
+  Loader2,
+} from "lucide-react";
+import StoryPublishButton from "@/components/StoryPublishButton";
 
 // Import Sub-Components
 import { StoryHeader } from "@/components/story/StoryHeader";
@@ -295,6 +304,23 @@ export default function StoryPage({
     }
   };
 
+  const handleTitleUpdate = async (newTitle: string) => {
+    try {
+      const { error } = await supabase
+        .from("stories")
+        .update({ title: newTitle })
+        .eq("id", storyId);
+
+      if (error) throw error;
+
+      setStory((prev: any) => (prev ? { ...prev, title: newTitle } : null));
+    } catch (err) {
+      console.error("Failed to update title:", err);
+      alert("Failed to update title. Please try again.");
+      throw err;
+    }
+  };
+
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this story?")) return;
     try {
@@ -332,7 +358,12 @@ export default function StoryPage({
 
       if (error) throw error;
 
-      router.push(`/stories/${storyId}/read`);
+      // Update local state so UI reacts instantly without hard refresh
+      setStory((prev: any) => ({
+        ...prev,
+        is_completed: true,
+        full_story: fullStoryContent,
+      }));
     } catch (err) {
       console.error("Completion failed:", err);
       alert("Failed to save story.");
@@ -356,14 +387,20 @@ export default function StoryPage({
     );
   }
 
+  const lastPart = parts.length > 0 ? parts[parts.length - 1] : null;
+  const isEndingGenerated =
+    lastPart != null && (!lastPart.choices || lastPart.choices.length === 0);
+
   return (
     <div className="min-h-screen pt-20 pb-32 px-4 md:px-8 max-w-4xl mx-auto">
       {/* A. Header */}
       <StoryHeader
         story={story}
+        isEndingGenerated={isEndingGenerated}
         onDelete={handleDelete}
         onComplete={handleComplete}
         onEndStory={() => setShowEndStoryModal(true)}
+        onTitleChange={handleTitleUpdate}
       />
 
       {/* B. Content Stream */}
@@ -385,19 +422,19 @@ export default function StoryPage({
 
         {/* C. Loading Skeleton */}
         {generating && (
-          <div className="animate-pulse flex gap-4 p-6 dark:bg-[#1e1e2e] bg-white/50 rounded-xl border border-gray-100">
-            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-              <Loader2 className="w-4 h-4 text-purple-600 animate-spin" />
+          <div className="animate-pulse flex gap-4 p-6 dark:bg-card dark:border-border bg-white/50 rounded-xl border border-gray-100">
+            <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
+              <Loader2 className="w-4 h-4 text-purple-600 dark:text-purple-400 animate-spin" />
             </div>
             <div className="flex-1 space-y-3">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-200 dark:bg-white/10 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 dark:bg-white/10 rounded w-1/2"></div>
             </div>
           </div>
         )}
 
         {/* D. Finish Button (Conditional) */}
-        {!story.is_completed && parts.length > 5 && !generating && (
+        {!story.is_completed && isEndingGenerated && !generating && (
           <div className="flex justify-center py-6 animate-in fade-in slide-in-from-bottom-4">
             <button
               onClick={handleComplete}
@@ -408,13 +445,41 @@ export default function StoryPage({
           </div>
         )}
 
+        {/* E. Story Completed State */}
+        {story.is_completed && (
+          <div className="flex flex-col items-center justify-center p-8 md:p-12 bg-white dark:bg-card rounded-2xl shadow-xl border border-gray-200 dark:border-border mt-12 gap-6 animate-in zoom-in-95 duration-500 text-center">
+            <h3 className="text-3xl font-bold bg-linear-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              Story Completed! 🎉
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 max-w-md">
+              Your masterpiece is finished. You can now read it in a clean
+              format or publish it to the community.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 mt-2 w-full sm:w-auto">
+              <Link
+                href={`/stories/${storyId}/read`}
+                className="flex items-center justify-center gap-2 px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-bold shadow-lg transition-all"
+              >
+                <BookOpen className="w-5 h-5" />
+                Read Story
+              </Link>
+              <StoryPublishButton
+                storyId={parseInt(storyId)}
+                initialIsPublished={story.is_published || false}
+                variant="large"
+                onStatusChange={(newStatus) => router.refresh()}
+              />
+            </div>
+          </div>
+        )}
+
         <div ref={bottomRef} className="h-4" />
       </div>
 
       {/* F. End Story Modal */}
       {showEndStoryModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white dark:bg-[#1e1e2e] rounded-2xl p-6 max-w-md w-full shadow-2xl border border-gray-200 dark:border-white/10">
+          <div className="bg-white dark:bg-card rounded-2xl p-6 max-w-md w-full shadow-2xl border border-gray-200 dark:border-white/10">
             <div className="flex flex-col items-center text-center">
               <div className="w-12 h-12 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center mb-4">
                 <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />

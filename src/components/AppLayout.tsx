@@ -29,7 +29,7 @@ export default function AppLayout({
   user: User | null;
 }) {
   const pathname = usePathname();
-  const { isCollapsed } = useSidebar();
+  const { isCollapsed, isMounted } = useSidebar();
   const isPublic = PUBLIC_PATHS.includes(pathname);
 
   // Show sidebar if authenticated AND not on a public page
@@ -41,15 +41,26 @@ export default function AppLayout({
   // Show Footer only on public pages
   const showFooter = isPublic;
 
+  useEffect(() => {
+    document.documentElement.setAttribute(
+      "data-layout",
+      showSidebar ? "app" : "public",
+    );
+  }, [showSidebar]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute(
+      "data-sidebar",
+      isCollapsed ? "collapsed" : "expanded",
+    );
+  }, [isCollapsed]);
   return (
     <div className="min-h-screen flex flex-col">
       {showNavbar && <Navbar user={user} isHome={isHome} />}
 
       {showSidebar && <Sidebar user={user} />}
 
-      <main
-        className={`flex-grow transition-all duration-300 ${showSidebar ? (isCollapsed ? "md:pl-20 pt-0" : "md:pl-64 pt-6") : "pt"}`}
-      >
+      <main className="main-content flex-grow transition-all duration-300">
         {children}
       </main>
 

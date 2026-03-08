@@ -13,7 +13,7 @@ export default function CTASection() {
       
       {/* The "Portal" Glow - Anchored to the bottom center */}
       <div className="absolute bottom-[-20%] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/10 rounded-full blur-[120px] z-0 pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[400px] h-[300px] bg-purple-500/40 rounded-full multip blur-[80px] z-0 pointer-events-none" />
+      <div className="absolute bottom-[-23%] left-1/2 -translate-x-1/2 w-[400px] h-[300px] bg-purple-500/20 rounded-full multip blur-[80px] z-0 pointer-events-none" />
 
       {/* Optional: A very subtle grid overlay for texture */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] z-0" />

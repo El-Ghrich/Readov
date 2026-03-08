@@ -8,7 +8,7 @@ import {
   AnimatePresence,
 } from "framer-motion";
 import { Sparkles } from "lucide-react";
-import { Homemade_Apple, Inter, Nanum_Brush_Script } from "next/font/google";
+import { Homemade_Apple, Inter, Oooh_Baby } from "next/font/google";
 import Link from "next/link";
 import LightRays from "@/components/animate-ui/components/backgrounds/LightRays";
 
@@ -23,7 +23,7 @@ const inter = Inter({
   display: "swap",
 });
 
-const nanum = Nanum_Brush_Script({
+const ooohBaby = Oooh_Baby({
   weight: "400",
   subsets: ["latin"],
   display: "swap",
@@ -31,7 +31,7 @@ const nanum = Nanum_Brush_Script({
 
 // --- 2. MAIN COMPONENT ---
 const INITIAL_PROMPT =
-  "The detective enters the room... -> El detective entra en la habitación...";
+  "The detective enters the room ...\n  -> El detective entra en la habitación...";
 
 export default function SplitHero() {
   // 3D Tilt Logic
@@ -73,10 +73,10 @@ export default function SplitHero() {
     try {
       await new Promise((r) => setTimeout(r, 1500));
       const randomPhrases = [
-        "The sun rises over the city... -> Le soleil se lève sur la ville...",
-        "She found a mysterious letter... -> Sie fand einen mysteriösen Brief...",
-        "They traveled across the ocean... -> Eles viajaram pelo oceano...",
-        "The knight drew his sword... -> Il cavaliere sguainò la spada...",
+        "The sun rises over the city...\n -> Le soleil se lève sur la ville...",
+        "She found a mysterious letter...\n -> Sie fand einen mysteriösen Brief...",
+        "They traveled across the ocean...\n -> Eles viajaram pelo oceano...",
+        "The knight drew his sword...\n -> Il cavaliere sguainò la spada...",
       ];
       const newText =
         randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
@@ -325,7 +325,7 @@ export default function SplitHero() {
           {/* Handwriting Overlay */}
           <div className="absolute inset-0 flex items-start justify-start p-[20%] pt-[38%] pointer-events-none">
             <div
-              className={`${nanum.className} text-base sm:text-xl lg:text-3xl text-[#2D241E] mix-blend-multiply text-left w-full break-words whitespace-pre-wrap`}
+              className={`${ooohBaby.className} text-base sm:text-xl lg:text-3xl text-[#2D241E] mix-blend-multiply text-left w-full break-words whitespace-pre-wrap`}
             >
               <motion.span
                 animate={{

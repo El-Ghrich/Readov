@@ -20,7 +20,6 @@ interface Story {
   is_published: boolean;
   full_story: string | null;
   updated_at: string;
-  story_parts: { content: string }[];
 }
 
 interface MyJourneyProps {
@@ -141,11 +140,9 @@ export default function MyJourney({ initialStories }: MyJourneyProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence mode="popLayout">
             {filteredStories.map((story) => {
-              const preview = story.is_completed
-                ? story.full_story ||
-                  story.story_parts?.[0]?.content ||
-                  "No content available."
-                : story.story_parts?.[0]?.content || "No content available.";
+              const preview = story.full_story 
+                ? story.full_story.substring(0, 150) + "..." 
+                : "No content available.";
 
               return (
                 <motion.div

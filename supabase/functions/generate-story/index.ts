@@ -81,7 +81,7 @@ RULES:
         "key_items": []
      },
      "correction": "String (optional correction if user input has errors, else null)",
-     "vocabulary_highlight": { "word": "definition" } (Object with 2-6 main words from YOUR GENERATED CONTENT and their brief definitions${nativeLangInfo})
+     "vocabulary_highlight": { "word": "definition" } (Object with 2-6 main words from YOUR GENERATED CONTENT and in the same language as the story and their brief definitions${nativeLangInfo})
    }
 2. MEMORY: Use the provided 'narrative_context' to maintain continuity. 
    - If a character's status changes (e.g., becomes angry), UPDATE it in the returned JSON.

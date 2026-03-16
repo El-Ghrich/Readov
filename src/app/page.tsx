@@ -1,10 +1,17 @@
-import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
-import SplitHero from "@/components/SplitHero";
-import { QuillCursor } from "@/components/QuillCursor";
-import FeatureCards from "@/components/FeatureCards";
-import OriginStorySection from "@/components/OriginStorySection";
+"use client";
+
+import dynamic from "next/dynamic";
 import CTASection from "@/components/CTASection";
+import SplitHero from "@/components/SplitHero";
+
+const QuillCursor = dynamic(
+  () => import("@/components/QuillCursor").then((mod) => mod.QuillCursor),
+  { ssr: false },
+);
+const FeatureCards = dynamic(() => import("@/components/FeatureCards"));
+const OriginStorySection = dynamic(
+  () => import("@/components/OriginStorySection"),
+);
 
 export default function Home() {
   return (

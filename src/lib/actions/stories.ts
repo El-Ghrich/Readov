@@ -89,12 +89,12 @@ export async function getPublishedStories(filters: {
   genre?: string;
   page: number;
   pageSize: number;
-}): Promise<ActionResult<{ list: any[]; totalCount: number }>> {
+}): Promise<ActionResult<{ list: any[]; hasMore: boolean }>> {
   const supabase = await createClient();
 
   let query = supabase
     .from("stories")
-    .select("*, story_parts(content)", { count: "exact" })
+    .select("*")
     .eq("is_published", true)
     .order("created_at", { ascending: false });
 
@@ -103,25 +103,28 @@ export async function getPublishedStories(filters: {
   }
 
   const from = (filters.page - 1) * filters.pageSize;
-  const to = from + filters.pageSize - 1;
+  // Fetch one extra item to check if there are more
+  const to = from + filters.pageSize;
 
-  const { data, error, count } = await query.range(from, to);
+  const { data, error } = await query.range(from, to);
 
   if (error) {
     console.error("[getPublishedStories]", error.message);
     return { success: false, error: "Failed to fetch stories" };
   }
 
+  const hasMore = (data && data.length > filters.pageSize) || false;
+  const actualData = hasMore ? data.slice(0, filters.pageSize) : (data || []);
+
   // Process data to include a preview
-  const list = data.map((s: any) => ({
+  const list = actualData.map((s: any) => ({
     ...s,
     content_preview:
-      s.full_story ||
-      s.story_parts?.[0]?.content?.substring(0, 150) + "..." ||
+      s.full_story?.substring(0, 150) + "..." ||
       "No preview available.",
     likes: 0, // Placeholder
     liked_by_user: false, // Placeholder
   }));
 
-  return { success: true, data: { list, totalCount: count || 0 } };
+  return { success: true, data: { list, hasMore } };
 }

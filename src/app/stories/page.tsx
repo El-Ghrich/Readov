@@ -12,12 +12,7 @@ export default async function StoriesPage() {
 
     const { data: stories, error } = await supabase
         .from('stories')
-        .select(`
-            *,
-            story_parts (
-                content
-            )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false })
 

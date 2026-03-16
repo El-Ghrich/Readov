@@ -62,7 +62,7 @@ export default function FeedPage() {
       });
 
       if (res.success) {
-        const { list, totalCount } = res.data;
+        const { list, hasMore: _hasMore } = res.data;
         if (isLoadMore) {
           setStories((prev) => [...prev, ...list]);
           setPage(nextPage);
@@ -70,7 +70,7 @@ export default function FeedPage() {
           setStories(list);
           setPage(1);
         }
-        setHasMore(stories.length + list.length < totalCount);
+        setHasMore(_hasMore);
       } else {
         console.error(res.error);
       }

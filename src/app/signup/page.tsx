@@ -82,9 +82,7 @@ export default function SignupPage() {
       if (authError) throw authError;
 
       // Success
-      router.push(
-        "/login?message=Account created! Please check your email to confirm.",
-      );
+      router.push("/login?message=Account created!");
     } catch (err: any) {
       setError(err.message || "An error occurred during signup");
     } finally {

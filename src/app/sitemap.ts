@@ -3,21 +3,7 @@ import { MetadataRoute } from "next";
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://readov.com";
 
-  const routes = [
-    "",
-    "/about",
-    "/contact",
-    "/feed",
-    "/leaderboard",
-    "/privacy",
-    "/terms",
-    "/vision-ink",
-    "/dual-verse",
-    "/vocabulary",
-    "/sentences",
-    "/support",
-    "/payment",
-  ];
+  const routes = ["", "/about", "/contact", "/privacy", "/terms", "/support"];
 
   return routes.map((route) => ({
     url: `${baseUrl}${route}`,

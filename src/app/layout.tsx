@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import AppLayout from "@/components/AppLayout";
 import { ToastProvider } from "@/context/ToastContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { PHProvider } from "@/app/providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -38,9 +39,10 @@ export default async function RootLayout({
       <body
         className={`${inter.className} min-h-screen bg-background text-foreground selection:bg-purple-500/30`}
       >
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
+        <PHProvider>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
               (function() {
                 try {
                   var savedTheme = localStorage.getItem('theme');
@@ -56,15 +58,16 @@ export default async function RootLayout({
                 } catch (e) {}
               })();
             `,
-          }}
-        />
-        <ToastProvider>
-          <ThemeProvider>
-            <SidebarProvider>
-              <AppLayout user={user}>{children}</AppLayout>
-            </SidebarProvider>
-          </ThemeProvider>
-        </ToastProvider>
+            }}
+          />
+          <ToastProvider>
+            <ThemeProvider>
+              <SidebarProvider>
+                <AppLayout user={user}>{children}</AppLayout>
+              </SidebarProvider>
+            </ThemeProvider>
+          </ToastProvider>
+        </PHProvider>
       </body>
     </html>
   );

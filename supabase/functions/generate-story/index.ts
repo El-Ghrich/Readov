@@ -91,7 +91,7 @@ RULES:
 5. LANGUAGE & STYLE: ${levelConfig.style}.
 6. LEVEL: ${params.level_label || "Intermediate"}. ADJUST STRICTLY TO THIS LEVEL.
 7. Content: Continue the plot logically.
-8. Options: Provide 3 short, intriguing plot directions for what happens NEXT (max 10 words each) in the Target Language.
+8. Options: Provide 3 short, intriguing plot directions for what happens NEXT (max 10 words each) in the Story Target Language NOT in ${params.native_language}.
 ${
   isCustom
     ? `9. USER INPUT ANALYSIS: 

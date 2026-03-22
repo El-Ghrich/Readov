@@ -228,13 +228,13 @@ export default function SplitHero() {
       </div>
 
       {/* Left Side - Content */}
-      <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 lg:px-24 py-12 z-10 relative">
-        <div className={`max-w-xl mx-auto lg:mx-0 ${inter.className}`}>
+      <div className="flex-1 flex flex-col justify-center px-4 sm:px-12 lg:px-24 py-16 lg:py-12 z-10 relative">
+        <div className={`max-w-xl mx-auto lg:mx-0 text-center lg:text-left ${inter.className}`}>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-5xl md:text-7xl font-extrabold text-white mb-6 tracking-tight leading-tight relative z-10"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 tracking-tight leading-tight relative z-10"
           >
             Shape the <span className="text-gradient">story</span>. Master the
             language.
@@ -244,7 +244,7 @@ export default function SplitHero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl text-[#a1a1b5] mb-10 leading-relaxed font-light relative z-10"
+            className="text-lg sm:text-xl text-[#a1a1b5] mb-10 leading-relaxed font-light relative z-10"
           >
             Ditch the boring flashcards. Choose your target language, pick a
             genre, and learn naturally by guiding the plot of interactive AI
@@ -255,7 +255,7 @@ export default function SplitHero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-4 relative z-10"
+            className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 relative z-10"
           >
             <Link
               href="/create"
@@ -275,7 +275,7 @@ export default function SplitHero() {
       </div>
 
       {/* Right Side - Magic Scroll */}
-      <div className="flex-1 flex items-center justify-center relative perspective-1000 py-12 lg:py-0 z-10">
+      <div className="hidden lg:flex flex-1 items-center justify-center relative perspective-1000 py-12 lg:py-0 z-10">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[700px] bg-[#6d7de8]/10 rounded-full blur-[120px] pointer-events-none" />
 
         <motion.div

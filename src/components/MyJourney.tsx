@@ -81,7 +81,7 @@ export default function MyJourney({ initialStories }: MyJourneyProps) {
     <>
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Stats */}
-        <div className="bg-card dark:glass-dark rounded-2xl p-8 border border-border dark:border-white/5 relative overflow-hidden shadow-sm">
+        <div className="bg-card dark:glass-dark rounded-2xl p-5 md:p-8 border border-border dark:border-white/5 relative overflow-hidden shadow-sm">
           <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/10 rounded-full blur-[80px] -mr-16 -mt-16 pointer-events-none" />
           <div className="relative z-10">
             <h1 className="text-3xl font-bold text-foreground mb-6">

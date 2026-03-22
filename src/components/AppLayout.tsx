@@ -131,8 +131,8 @@ function Navbar({ user, isHome }: { user: User | null; isHome: boolean }) {
             /* Authenticated: just a clean Dashboard button */
             <Link
               href="/stories"
-              className={`px-5 py-2 rounded-full text-sm font-semibold
-                transition-all duration-200
+              className={`px-4 py-1.5 md:px-5 md:py-2 rounded-full text-xs md:text-sm font-semibold
+                  transition-all duration-200
                 ${
                   !isScrolled
                     ? "bg-purple-600 hover:bg-purple-700 text-white shadow-none"
@@ -149,7 +149,7 @@ function Navbar({ user, isHome }: { user: User | null; isHome: boolean }) {
             <>
               <Link
                 href="/login"
-                className={`px-4 py-2 rounded-full text-sm font-medium
+                className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium
                   transition-all duration-200
                   ${
                     !isScrolled
@@ -164,7 +164,7 @@ function Navbar({ user, isHome }: { user: User | null; isHome: boolean }) {
               </Link>
               <Link
                 href="/signup"
-                className={`px-5 py-2 rounded-full text-sm font-semibold
+                className={`px-4 py-1.5 md:px-5 md:py-2 rounded-full text-xs md:text-sm font-semibold
                   transition-all duration-200
                   ${
                     !isScrolled

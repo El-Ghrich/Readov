@@ -39,9 +39,9 @@ export default function OriginStorySection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
           {/* ─── LEFT COLUMN ─── */}
-          <div className="lg:col-span-5 relative lg:sticky lg:top-32  flex flex-col gap-10">
+          <div className="lg:col-span-5 relative lg:sticky lg:top-32 flex flex-col items-center lg:items-start text-center lg:text-left gap-10">
             {/* Headline */}
-            <div>
+            <div className="flex flex-col items-center lg:items-start">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-medium mb-6">
                 <Sparkles className="w-4 h-4" />
                 <span>Our Origin</span>

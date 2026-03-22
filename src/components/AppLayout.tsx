@@ -149,7 +149,7 @@ function Navbar({ user, isHome }: { user: User | null; isHome: boolean }) {
             <>
               <Link
                 href="/login"
-                className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium
+                className={`whitespace-nowrap px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium
                   transition-all duration-200
                   ${
                     !isScrolled
@@ -164,7 +164,7 @@ function Navbar({ user, isHome }: { user: User | null; isHome: boolean }) {
               </Link>
               <Link
                 href="/signup"
-                className={`px-4 py-1.5 md:px-5 md:py-2 rounded-full text-xs md:text-sm font-semibold
+                className={`whitespace-nowrap px-4 py-1.5 md:px-5 md:py-2 rounded-full text-xs md:text-sm font-semibold
                   transition-all duration-200
                   ${
                     !isScrolled

@@ -124,9 +124,8 @@ export default function ReaderPage({
           </div>
 
           {/* Rendering Parts */}
-          {parts.map((part, index) => (
-            <div key={part.id} className="relative group">
-              {/* Part Content with Line-by-Line Animation */}
+          {parts.length === 0 && story.full_story ? (
+            <div className="relative group">
               <motion.div
                 initial="hidden"
                 whileInView="visible"
@@ -136,27 +135,13 @@ export default function ReaderPage({
                   visible: {
                     opacity: 1,
                     transition: {
-                      staggerChildren: 0.15, // Stagger delay for each line/block
+                      staggerChildren: 0.15,
                     },
                   },
                 }}
                 className="prose prose-lg dark:prose-invert max-w-none leading-relaxed text-gray-800 dark:text-gray-200 whitespace-pre-wrap"
               >
-                <span
-                  className={`float-left mr-2 mt-1 text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                    part.is_user_input
-                      ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
-                      : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                  }`}
-                >
-                  {part.is_user_input ? "You" : "AI"}
-                </span>
-
-                {/* 
-                                    Split content by newlines to animate blocks/lines.
-                                    Using a heuristic: double newline is paragraph, single is line break.
-                                */}
-                {part.content
+                {story.full_story
                   .split("\n")
                   .filter((line: string) => line.trim() !== "")
                   .map((line: string, i: number) => (
@@ -176,25 +161,80 @@ export default function ReaderPage({
                     </motion.p>
                   ))}
               </motion.div>
-
-              {/* Branching UI between paragraphs */}
-              <div className="my-8">
-                <StoryBrancher
-                  index={index}
-                  choices={part.choices || []}
-                  selectedChoiceIndex={part.selected_choice_index}
-                  userCustomInput={part.user_custom_input}
-                  onBranch={(instruction) =>
-                    handleFeatureMock(
-                      "Branch",
-                      instruction || "",
-                      part.part_number,
-                    )
-                  }
-                />
-              </div>
             </div>
-          ))}
+          ) : (
+            parts.map((part, index) => (
+              <div key={part.id} className="relative group">
+                {/* Part Content with Line-by-Line Animation */}
+                <motion.div
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-50px" }}
+                  variants={{
+                    hidden: { opacity: 0 },
+                    visible: {
+                      opacity: 1,
+                      transition: {
+                        staggerChildren: 0.15, // Stagger delay for each line/block
+                      },
+                    },
+                  }}
+                  className="prose prose-lg dark:prose-invert max-w-none leading-relaxed text-gray-800 dark:text-gray-200 whitespace-pre-wrap"
+                >
+                  <span
+                    className={`float-left mr-2 mt-1 text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                      part.is_user_input
+                        ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+                        : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                    }`}
+                  >
+                    {part.is_user_input ? "You" : "AI"}
+                  </span>
+
+                  {/* 
+                                      Split content by newlines to animate blocks/lines.
+                                      Using a heuristic: double newline is paragraph, single is line break.
+                                  */}
+                  {part.content
+                    .split("\n")
+                    .filter((line: string) => line.trim() !== "")
+                    .map((line: string, i: number) => (
+                      <motion.p
+                        key={i}
+                        variants={{
+                          hidden: { opacity: 0, y: 10 },
+                          visible: {
+                            opacity: 1,
+                            y: 0,
+                            transition: { duration: 0.5, ease: "easeOut" },
+                          },
+                        }}
+                        className="mb-4"
+                      >
+                        {line}
+                      </motion.p>
+                    ))}
+                </motion.div>
+
+                {/* Branching UI between paragraphs */}
+                <div className="my-8">
+                  <StoryBrancher
+                    index={index}
+                    choices={part.choices || []}
+                    selectedChoiceIndex={part.selected_choice_index}
+                    userCustomInput={part.user_custom_input}
+                    onBranch={(instruction) =>
+                      handleFeatureMock(
+                        "Branch",
+                        instruction || "",
+                        part.part_number,
+                      )
+                    }
+                  />
+                </div>
+              </div>
+            ))
+          )}
 
           {/* The End Marker */}
           <div className="flex items-center justify-center gap-4 py-12 opacity-50">

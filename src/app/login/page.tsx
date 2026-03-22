@@ -50,7 +50,7 @@ export default function LoginPage() {
       setError(authError.message);
       setLoading(false);
     } else {
-      router.push("/create");
+      router.push(next);
       router.refresh();
     }
   };

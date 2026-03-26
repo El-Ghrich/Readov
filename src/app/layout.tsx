@@ -7,6 +7,7 @@ import AppLayout from "@/components/AppLayout";
 import { ToastProvider } from "@/context/ToastContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { PHProvider } from "@/app/providers";
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -60,6 +61,7 @@ export default async function RootLayout({
             `,
             }}
           />
+        <Analytics/>
           <ToastProvider>
             <ThemeProvider>
               <SidebarProvider>

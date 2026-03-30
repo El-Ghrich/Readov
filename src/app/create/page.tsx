@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import JobListener from "@/components/JobListener";
@@ -160,6 +160,28 @@ export default function CreateStory() {
   // Keep these synced for the custom UI elements
   const currentGenre = watch("genre");
   const currentLevelIndex = parseInt(watch("languageLevel")) || 0;
+
+  useEffect(() => {
+    try {
+      const storedPrefs = localStorage.getItem("readov_prefs");
+      if (storedPrefs) {
+        const prefs = JSON.parse(storedPrefs);
+        if (prefs.favoriteLanguage) {
+          setValue("targetLanguage", prefs.favoriteLanguage);
+        }
+        if (prefs.languageLevel) {
+          const matchingIndex = DIFFICULTY_LEVELS.findIndex(
+            (level) => level.name === prefs.languageLevel
+          );
+          if (matchingIndex !== -1) {
+            setValue("languageLevel", String(matchingIndex));
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to parse readov_prefs from localStorage:", error);
+    }
+  }, [setValue]);
 
   const onSubmit = async (data: StoryCreateFormValues) => {
     setLoading(true);

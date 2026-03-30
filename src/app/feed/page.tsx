@@ -106,23 +106,23 @@ export default function FeedPage() {
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-tr from-gray-50 via-white to-indigo-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950/30">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
-          <h1 className="text-4xl font-extrabold text-white tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
             Open Shelf
           </h1>
 
           {/* Genre Slider / Filter */}
-          <div className="flex overflow-x-auto pb-2 md:pb-0 gap-2 max-w-full no-scrollbar">
+          <div className="flex pb-2 md:pb-0 gap-2 max-w-full no-scrollbar">
             {GENRES.map((genre) => (
               <button
                 key={genre}
                 onClick={() => setSelectedGenre(genre)}
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                   selectedGenre === genre
-                    ? "bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)]"
-                    : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                    ? "bg-blue-600 text-white shadow-[0px_0px_21px_-4px_#1c6beb] dark:shadow-[0_0_15px_rgba(37,99,235,0.5)]"
+                    : "bg-white/5 text-gray-400 hover:text-blue-600 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white "
                 }`}
               >
                 {genre}
@@ -141,11 +141,11 @@ export default function FeedPage() {
               {stories.map((story) => (
                 <div
                   key={story.id}
-                  className="group relative glass-dark rounded-2xl overflow-hidden border border-white/5 transition-all hover:-translate-y-2 hover:border-blue-500/30"
+                  className="group relative bg-white/60 dark:bg-card/60 backdrop-blur-xl rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl-2 hover:border-purple-300 dark:hover:border-purple-500/30 dark:hover:shadow-purple-500/20"
                 >
                   {/* Image Placeholder based on genre */}
                   <div className="h-48 w-full relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
-                    <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent z-10" />
+                    <div className="absolute inset-0 bg-linear-to-t from-purple-500/40 via-black/20 to-transparent z-10" />
                     <img
                       src={getGenreImage(story.genre)}
                       alt={story.genre}
@@ -247,7 +247,7 @@ function getGenreImage(genre: string) {
     horror: "/img/horror.jpg",
     adventure: "/img/adventure.jpg",
     custom: "/img/custom.jpg",
-    general: "/img/general.png"
+    general: "/img/general.png",
   };
   return map[genre?.toLowerCase()] || "/img/Mockup_img.png";
 }

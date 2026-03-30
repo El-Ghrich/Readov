@@ -77,7 +77,7 @@ export default function StoryPublishButton({
           className={cn(
             "flex items-center justify-center gap-2 font-medium transition-colors",
             variant === "default"
-              ? "text-green-400 text-sm px-3 py-2 bg-green-500/10 rounded-lg border border-green-500/20 hover:bg-green-500/20"
+              ? "text-green-600 dark:text-green-400 text-sm px-3 py-2 bg-green-50 dark:bg-green-500/10 rounded-lg border border-green-200 dark:border-green-500/20 hover:bg-green-100 dark:hover:bg-green-500/20"
               : "px-8 py-3 bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400 border border-green-200 dark:border-green-500/20 rounded-full font-bold shadow-lg hover:bg-green-100 dark:hover:bg-green-500/20",
           )}
           title="Click to unpublish"
@@ -95,14 +95,14 @@ export default function StoryPublishButton({
           type="danger"
         >
           <div className="space-y-6">
-            <p className="text-gray-300 dark:text-gray-900">
+            <p className="text-gray-600 dark:text-gray-300">
               Are you sure you want to make this story private? It will be
               removed from the Open Shelf feed.
             </p>
             <div className="flex gap-4">
               <button
                 onClick={() => setShowModal(false)}
-                className="flex-1 py-3 bg-white/5 text-white font-medium rounded-lg hover:bg-white/10"
+                className="flex-1 py-3 bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-white/10"
                 disabled={loading}
               >
                 Cancel
@@ -129,7 +129,7 @@ export default function StoryPublishButton({
       className={cn(
         "flex items-center justify-center gap-2 font-medium transition-all",
         variant === "default"
-          ? "text-gray-300 hover:text-white px-3 py-2 hover:bg-white/10 rounded-lg text-sm border border-transparent hover:border-white/10"
+          ? "text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white px-3 py-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-sm border border-transparent hover:border-gray-200 dark:hover:border-white/10"
           : "px-8 py-3 bg-gray-100 dark:bg-white/5 dark:hover:bg-white/10 text-gray-900 dark:text-white rounded-full font-bold border border-gray-200 dark:border-white/10",
       )}
       title="Publish to Open Shelf"

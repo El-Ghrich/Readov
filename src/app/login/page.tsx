@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Lock, Mail, ArrowRight, Loader2 } from "lucide-react";
+import { Lock, Mail, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +17,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const { theme } = useTheme();
 
   const router = useRouter();
@@ -137,10 +138,10 @@ export default function LoginPage() {
                   </div>
                   <input
                     id="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     {...register("password")}
-                    className={`block w-full pl-10 pr-3 py-3 border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 transition-all hover:bg-background/80 ${
+                    className={`block w-full pl-10 pr-12 py-3 border rounded-xl bg-background/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 transition-all hover:bg-background/80 ${
                       errors.password
                         ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                         : "border-border focus:border-primary focus:ring-primary"
@@ -151,21 +152,49 @@ export default function LoginPage() {
                       errors.password ? "password-error" : undefined
                     }
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-primary transition-colors focus:outline-none"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
                 <InputError message={errors.password?.message} />
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-border bg-background/50 text-primary focus:ring-primary"
-                />
+            <div className="flex flex-wrap items-center justify-between gap-4 w-full">
+              <div className="flex items-center group cursor-pointer">
+                <div className="relative flex items-center justify-center w-5 h-5 mr-3">
+                  <input
+                    id="remember-me"
+                    type="checkbox"
+                    className="peer absolute w-full h-full opacity-0 cursor-pointer z-10"
+                  />
+                  <div className="w-5 h-5 rounded border border-border bg-background/50 peer-focus:ring-2 peer-focus:ring-primary/30 peer-checked:bg-primary peer-checked:border-primary transition-colors flex items-center justify-center pointer-events-none">
+                    <svg
+                      className="w-3.5 h-3.5 text-white transition-opacity duration-200 peer-checked:opacity-100 opacity-0 "
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                </div>
                 <label
                   htmlFor="remember-me"
-                  className="ml-2 block text-sm text-muted-foreground"
+                  className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors cursor-pointer select-none"
                 >
                   Remember me
                 </label>
@@ -174,7 +203,7 @@ export default function LoginPage() {
               <div className="text-sm">
                 <a
                   href="#"
-                  className="font-medium text-primary hover:text-primary/80"
+                  className="font-medium text-primary hover:text-primary/80 transition-colors"
                 >
                   Forgot your password?
                 </a>

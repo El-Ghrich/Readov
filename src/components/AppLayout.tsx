@@ -5,7 +5,7 @@ import Link from "next/link";
 import { User } from "@supabase/supabase-js";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
-import { LogOut, User as UserIcon, Sun, Moon } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useSidebar } from "@/context/SidebarContext";
 import { useState, useEffect } from "react";
